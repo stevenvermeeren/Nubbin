@@ -1,0 +1,86 @@
+name: CI and Release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Restore, build, and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+
+      - name: Restore
+        run: dotnet restore Nubbin.slnx
+
+      - name: Build
+        run: dotnet build Nubbin.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Nubbin.Test/Nubbin.Test.csproj --configuration Release --no-build
+
+      - name: Pack release candidate
+        if: >-
+          github.event_name == 'pull_request' &&
+          startsWith(github.event.pull_request.head.ref, 'release-please--')
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_version="$(sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' Nubbin/Nubbin.csproj | head -n 1)"
+          dotnet pack Nubbin/Nubbin.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            -p:PackageVersion="${base_version}-rc.${GITHUB_RUN_NUMBER}" \
+            --output ./artifacts/release-candidate
+
+      - name: Upload release candidate
+        if: >-
+          github.event_name == 'pull_request' &&
+          startsWith(github.event.pull_request.head.ref, 'release-please--')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ github.event.pull_request.number }}
+          path: ./artifacts/release-candidate
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release-candidate:
+    name: Publish release candidate
+    if: >-
+      github.event_name == 'pull_request' &&
+      startsWith(github.event.pull_request.head.ref, 'release-please--')
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up .NET for NuGet publishing
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+
+      - name: Download release candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ github.event.pull_request.number }}
+          path: ./artifacts/release-candidate
+
+      - name: Publish release candidate to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >-
+          dotnet nuget push ./artifacts/release-candidate/*.nupkg
+          --api-key "$NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

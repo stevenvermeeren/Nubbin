@@ -1,0 +1,50 @@
+name: Publish Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish NuGet package
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+
+      - name: Restore
+        run: dotnet restore Nubbin.slnx
+
+      - name: Build
+        run: dotnet build Nubbin.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Nubbin.Test/Nubbin.Test.csproj --configuration Release --no-build
+
+      - name: Pack release
+        run: >-
+          dotnet pack Nubbin/Nubbin.csproj
+          --configuration Release
+          --no-build
+          --no-restore
+          --output ./artifacts/release
+
+      - name: Publish to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >-
+          dotnet nuget push ./artifacts/release/*.nupkg
+          --api-key "$NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

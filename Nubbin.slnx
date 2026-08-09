@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="./Nubbin/Nubbin.csproj" />
+  <Project Path="./Nubbin.Test/Nubbin.Test.csproj" />
+</Solution>
