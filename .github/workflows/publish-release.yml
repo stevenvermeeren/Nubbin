@@ -11,7 +11,9 @@ jobs:
   publish:
     name: Publish NuGet package
     runs-on: ubuntu-latest
-    environment: release
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check out release tag
         uses: actions/checkout@v4
@@ -40,11 +42,15 @@ jobs:
           --no-restore
           --output ./artifacts/release
 
+      - name: Log in to NuGet with OIDC
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USERNAME }}
+
       - name: Publish to NuGet
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: >-
           dotnet nuget push ./artifacts/release/*.nupkg
-          --api-key "$NUGET_API_KEY"
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate

@@ -90,17 +90,22 @@ The GitHub Actions workflow restores, builds, and tests pull requests targeting
 and opens or updates a release PR with the version and changelog changes. Merge
 that PR to create the GitHub release and tag. Every Release Please PR creation
 or update also builds and publishes an `-rc.<run-number>` package from the CI
-build output. The release workflow then waits for approval from the `release`
-environment before building and publishing the tagged stable package.
+build output. Merging the Release Please PR creates the GitHub release and
+automatically publishes the tagged stable package.
 
 Repository setup requires:
 
-- A `NUGET_API_KEY` repository secret with permission to publish the package.
+- NuGet Trusted Publishing configured for this GitHub repository and both
+  workflows. In nuget.org account settings, add GitHub Actions trusted
+  publishing policies using this repository's owner and name. Enter only
+  `ci.yml` for the workflow file in the RC policy and `publish-release.yml` in
+  the stable policy; do not enter the `.github/workflows/` path. Leave the
+  environment field empty.
+- A `NUGET_USERNAME` repository secret containing the nuget.org profile name
+  that owns the package, not an email address.
 - A `RELEASE_PLEASE_TOKEN` repository secret containing a PAT or GitHub App
   token that can create release PRs and trigger workflows from the created
   release.
-- A `release` environment with required reviewers configured under repository
-  settings. This is the manual gate before NuGet publication.
 
 Release Please calculates package versions from Conventional Commit messages:
 
@@ -109,9 +114,9 @@ Release Please calculates package versions from Conventional Commit messages:
 - `!` after the type/scope or a `BREAKING CHANGE:` footer increments the major
   version.
 
-Stable releases are tagged as `v<version>` by Release Please. The Release
-Please release PR is the version approval gate; the protected `release`
-environment is the publication approval gate.
+Stable releases are tagged as `v<version>` by Release Please. Merging the
+Release Please PR is the approval gate for both the version and NuGet
+publication.
 
 ## License
 
