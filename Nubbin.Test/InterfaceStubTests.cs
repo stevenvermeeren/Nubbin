@@ -34,6 +34,17 @@ public class InterfaceStubTests
     }
 
     [Fact]
+    public void StubbedCollectionMembersUseEmptyCompatibleCollections()
+    {
+        var stub = new InterfaceStub();
+
+        Assert.Empty(stub.Items());
+        Assert.Empty(stub.Numbers);
+        Assert.Empty(stub.Counts());
+        Assert.Empty(stub.Tags);
+    }
+
+    [Fact]
     public void PartiallyImplementedInterfaceOnlyStubsMissingMembers()
     {
         var stub = new PartialInterfaceStub();

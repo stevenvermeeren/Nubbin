@@ -6,6 +6,10 @@ public interface InterfaceSample
     string Name { get; set; }
     object GetterOnly { get; }
     int SetterOnly { set; }
+    IEnumerable<string> Items();
+    IList<int> Numbers { get; set; }
+    IDictionary<string, int> Counts();
+    ISet<string> Tags { get; set; }
 }
 
 [Stub]

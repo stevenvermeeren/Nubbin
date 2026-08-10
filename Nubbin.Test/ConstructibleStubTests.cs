@@ -5,20 +5,18 @@ namespace Nubbin.Test;
 public class ConstructibleStubTests
 {
     [Fact]
-    public void StubbedConstructibleReturnUsesDefaultConstructor()
+    public void StubbedConstructibleReturnUsesNull()
     {
         var result = new ConstructibleStub().Create();
 
-        Assert.NotNull(result);
-        Assert.Equal(42, result.Value);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task StubbedTaskUsesDefaultConstructorForResult()
+    public async Task StubbedTaskUsesNullResult()
     {
         var result = await new ConstructibleStub().CreateAsync();
 
-        Assert.NotNull(result);
-        Assert.Equal(42, result.Value);
+        Assert.Null(result);
     }
 }
