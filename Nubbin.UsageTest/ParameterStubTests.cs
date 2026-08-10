@@ -1,7 +1,6 @@
-using Nubbin;
-using Nubbin.Test.Bases;
+using Nubbin.Test.UsageTests.Bases;
 
-namespace Nubbin.Test;
+namespace Nubbin.Test.UsageTests;
 
 [Stub]
 public partial class ParameterStub : IParameterSample

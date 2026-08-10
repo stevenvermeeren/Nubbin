@@ -32,7 +32,7 @@ jobs:
         run: dotnet build Nubbin.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Nubbin.Test/Nubbin.Test.csproj --configuration Release --no-build
+        run: dotnet test Nubbin.slnx --configuration Release --no-build
 
       - name: Pack release
         run: >-

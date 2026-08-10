@@ -1,4 +1,4 @@
-namespace Nubbin.Test.Bases;
+namespace Nubbin.Test.UsageTests.Bases;
 
 public abstract class AbstractSample
 {
