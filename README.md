@@ -16,9 +16,26 @@ Generated methods use these return values:
 - `void`: an empty method body
 - `Task`: `Task.CompletedTask`
 - `Task<T>`: a completed task containing the generated default value
-- A concrete class with a public parameterless constructor: `new T()`
 - Other return types: `default!`
 - `out` parameters: `default!`
+
+Reference-type defaults are `null`; value types use their normal default value.
+Collection interfaces receive empty compatible collections instead of `null`:
+
+- `IEnumerable<T>`, `IReadOnlyCollection<T>`, and `IReadOnlyList<T>`: an empty array
+- `ICollection<T>` and `IList<T>`: an empty `List<T>`
+- `ISet<T>`: an empty `HashSet<T>`
+- `IDictionary<TKey, TValue>` and `IReadOnlyDictionary<TKey, TValue>`: an empty `Dictionary<TKey, TValue>`
+- Non-generic `IEnumerable`, `ICollection`, and `IList`: an empty array or `ArrayList`
+
+Properties are generated with the accessors required by their declaration. Interface
+properties always receive both a getter and setter. Abstract properties preserve
+their accessor shape, so getter-only and setter-only abstract properties remain
+valid overrides. Generated properties forward their storage through a nested
+`PropertyAccessor` object, which is created only when properties need to be
+generated. Its properties are initialized using the same default rules as method
+returns, and can be used to inspect or update storage for one-sided abstract
+properties.
 
 Existing implementations are preserved. If an abstract base class and an
 interface declare the same member, only one implementation is generated.
@@ -45,27 +62,23 @@ public partial class TestClock : IClock
 
 The generated `TestClock.Now()` returns `default(DateTime)`.
 
-For a concrete return type with a public parameterless constructor:
+Properties and collection return types are stubbed as follows:
 
 ```csharp
-public sealed class Response
+public interface IReportClient
 {
-}
-
-public interface IClient
-{
-    Response GetResponse();
-    Task<Response> GetResponseAsync();
+  IList<string> GetTags();
+  string Name { get; set; }
 }
 
 [Stub]
-public partial class TestClient : IClient
+public partial class TestReportClient : IReportClient
 {
 }
 ```
 
-Both methods return a non-null `Response`; the asynchronous method returns a
-completed task.
+`GetTags()` returns an empty `List<string>`, and `Name` is backed by the
+generated `PropertyAccessor` with a `null` initial value.
 
 ## Constraints
 
