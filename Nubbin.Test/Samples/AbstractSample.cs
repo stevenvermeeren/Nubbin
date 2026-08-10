@@ -16,4 +16,6 @@ public abstract class AbstractSample
 public partial class AbstractStub : AbstractSample
 {
     public int CallProtected(int value) => CreateProtected(value);
+
+    public object GetPropertyHelper() => this;
 }

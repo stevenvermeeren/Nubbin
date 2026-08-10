@@ -26,11 +26,11 @@ public class AbstractStubTests
         var stub = new AbstractStub();
 
         Assert.Null(stub.GetterOnly);
-        stub.Properties.GetterOnly = "updated";
+        Stubs.GetPropertyHelper(stub).GetterOnly = "updated";
         Assert.Equal("updated", stub.GetterOnly);
 
         stub.SetterOnly = 42;
-        Assert.Equal(42, stub.Properties.SetterOnly);
+        Assert.Equal(42, Stubs.GetPropertyHelper(stub).SetterOnly);
     }
 
     [Fact]

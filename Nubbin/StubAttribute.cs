@@ -6,8 +6,8 @@
 /// <remarks>
 /// The source generator creates implementations for unimplemented abstract
 /// members inherited from base classes and members required by implemented
-/// interfaces. Generated methods return default values, completed tasks, or a
-/// new instance when the return type has a public parameterless constructor.
+/// interfaces. Generated methods return default values or completed tasks, and
+/// common collection interfaces receive empty compatible collections.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public class StubAttribute : Attribute

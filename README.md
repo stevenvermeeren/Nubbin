@@ -31,11 +31,17 @@ Collection interfaces receive empty compatible collections instead of `null`:
 Properties are generated with the accessors required by their declaration. Interface
 properties always receive both a getter and setter. Abstract properties preserve
 their accessor shape, so getter-only and setter-only abstract properties remain
-valid overrides. Generated properties forward their storage through a nested
-`PropertyAccessor` object, which is created only when properties need to be
-generated. Its properties are initialized using the same default rules as method
-returns, and can be used to inspect or update storage for one-sided abstract
-properties.
+valid overrides. Generated properties use regular auto-implemented properties
+whenever possible, with initial values following the same default rules as
+method returns. Abstract properties with only one accessor use a typed
+`GetPropertyHelper()` extension backed by a weak table, because C# does not allow the
+missing accessor to be added to an override. Each stub gets its own generated
+`PropertyHelper` storage type without adding a storage property or nested type to the
+original stub class. The generated extension container is named
+The generated extension methods are placed in a partial static `Nubbin.Stubs`
+helper class, avoiding conflicts with members named `Properties` or
+`PropertyAccessor`. Each typed property helper is placed in the stub namespace's
+`.Nubbin` child namespace.
 
 Existing implementations are preserved. If an abstract base class and an
 interface declare the same member, only one implementation is generated.
@@ -77,8 +83,9 @@ public partial class TestReportClient : IReportClient
 }
 ```
 
-`GetTags()` returns an empty `List<string>`, and `Name` is backed by the
-generated `PropertyAccessor` with a `null` initial value.
+`GetTags()` returns an empty `List<string>`, and `Name` uses typed weak-table
+storage with a `null` initial value. The generated storage can be accessed with
+`client.GetPropertyHelper()` when direct inspection or setup is useful.
 
 ## Constraints
 

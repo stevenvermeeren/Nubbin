@@ -11,6 +11,9 @@ public class HybridStubTests
 
         Assert.Null(stub.Create(1));
         Assert.False(stub.IsValid("value"));
+
+        stub.GetPropertyHelper().GetterOnly = true;
+        Assert.True(stub.GetterOnly);
     }
 
     [Fact]

@@ -42,6 +42,12 @@ internal static class SymbolFormatting
         return property.ContainingType.TypeKind == TypeKind.Interface || property.SetMethod is not null;
     }
 
+    public static bool RequiresPropertyStorage(IPropertySymbol property)
+    {
+        return property.ContainingType.TypeKind != TypeKind.Interface &&
+            (property.GetMethod is null) != (property.SetMethod is null);
+    }
+
     public static string GetTypeAccessibility(INamedTypeSymbol type)
     {
         return type.DeclaredAccessibility switch
@@ -50,6 +56,11 @@ internal static class SymbolFormatting
             Accessibility.Internal => "internal",
             _ => string.Empty
         };
+    }
+
+    public static string GetGeneratedTypeAccessibility(INamedTypeSymbol type)
+    {
+        return type.DeclaredAccessibility == Accessibility.Public ? "public" : "internal";
     }
 
     private static string GetMemberAccessibility(Accessibility accessibility, bool isInterfaceMember)

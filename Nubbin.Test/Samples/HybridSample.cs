@@ -8,6 +8,7 @@ public interface IHybridSample
 public abstract class HybridBase
 {
     public abstract string Create(int value);
+    public abstract bool GetterOnly { get; }
 }
 
 [Stub]
