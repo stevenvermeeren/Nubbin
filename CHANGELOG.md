@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.3.0...Nubbin-v0.4.0) (2026-08-10)
+
+
+### Features
+
+* add nullability support ([2927ef8](https://github.com/stevenvermeeren/Nubbin/commit/2927ef81921b0db7755ccec76c4ed98f4abf9664))
+
 ## [0.3.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.2.0...Nubbin-v0.3.0) (2026-08-10)
 
 
