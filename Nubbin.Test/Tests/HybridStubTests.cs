@@ -1,6 +1,17 @@
-using Nubbin.Test.Samples;
+using Nubbin;
+using Nubbin.Test.Bases;
 
 namespace Nubbin.Test;
+
+[Stub]
+public partial class HybridStub : HybridBase, IHybridSample
+{
+}
+
+[Stub]
+public partial class SameMemberStub : SameMemberBaseSample, ISameMemberSample
+{
+}
 
 public class HybridStubTests
 {

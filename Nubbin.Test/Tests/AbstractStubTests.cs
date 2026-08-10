@@ -1,6 +1,26 @@
-using Nubbin.Test.Samples;
+using Nubbin;
+using Nubbin.Test.Bases;
 
 namespace Nubbin.Test;
+
+[Stub]
+public partial class AbstractStub : AbstractSample
+{
+    public int CallProtected(int value) => CreateProtected(value);
+
+    public object GetPropertyHelper() => this;
+}
+
+[Stub]
+public partial class PartialBaseStub : PartialBaseSample
+{
+}
+
+[Stub]
+public partial class FullyImplementedBaseStub : FullyImplementedBaseSample
+{
+    public override string Missing() => "implemented";
+}
 
 public class AbstractStubTests
 {

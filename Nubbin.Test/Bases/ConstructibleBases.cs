@@ -1,4 +1,4 @@
-namespace Nubbin.Test.Samples;
+namespace Nubbin.Test.Bases;
 
 public sealed class DefaultConstructible
 {
@@ -9,9 +9,4 @@ public interface IConstructibleSample
 {
     DefaultConstructible Create();
     Task<DefaultConstructible> CreateAsync();
-}
-
-[Stub]
-public partial class ConstructibleStub : IConstructibleSample
-{
 }

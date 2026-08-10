@@ -18,14 +18,45 @@ internal static class StubDefaults
         return false;
     }
 
-    public static string GetReturnExpression(ITypeSymbol returnType)
+    public static string GetReturnExpression(ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
     {
+        var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
         if (returnType is INamedTypeSymbol collectionType && GetCollectionExpression(collectionType) is { } collectionExpression)
         {
             return collectionExpression;
         }
 
+        if (returnType is INamedTypeSymbol constructibleType &&
+            effectiveNullableAnnotation == NullableAnnotation.NotAnnotated &&
+            HasPublicParameterlessConstructor(constructibleType))
+        {
+            return "new " + returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "()";
+        }
+
         return "default!";
+    }
+
+    public static bool RequiresNotImplemented(ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
+    {
+        var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
+        if (!returnType.IsReferenceType || effectiveNullableAnnotation != NullableAnnotation.NotAnnotated)
+        {
+            return false;
+        }
+
+        if (returnType is not INamedTypeSymbol namedType)
+        {
+            return true;
+        }
+
+        return !HasPublicParameterlessConstructor(namedType) && GetCollectionExpression(namedType) is null;
+    }
+
+    private static bool HasPublicParameterlessConstructor(INamedTypeSymbol type)
+    {
+        return type.TypeKind == TypeKind.Class &&
+            type.InstanceConstructors.Any(constructor =>
+                constructor.DeclaredAccessibility == Accessibility.Public && constructor.Parameters.Length == 0);
     }
 
     private static string? GetCollectionExpression(INamedTypeSymbol type)

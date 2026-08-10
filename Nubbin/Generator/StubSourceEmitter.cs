@@ -52,7 +52,16 @@ internal static class StubSourceEmitter
         source.AppendLine("        {");
         foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.Out))
         {
-            source.Append("            ").Append(parameter.Name).AppendLine(" = default!;");
+            if (StubDefaults.RequiresNotImplemented(parameter.Type, parameter.NullableAnnotation))
+            {
+                source.AppendLine("            throw new global::System.NotImplementedException();");
+            }
+            else
+            {
+                source.Append("            ").Append(parameter.Name).Append(" = ")
+                    .Append(StubDefaults.GetReturnExpression(parameter.Type, parameter.NullableAnnotation))
+                    .AppendLine(";");
+            }
         }
 
         if (StubDefaults.IsTask(method.ReturnType, out var taskResultType))
@@ -60,6 +69,10 @@ internal static class StubSourceEmitter
             if (taskResultType is null)
             {
                 source.AppendLine("            return global::System.Threading.Tasks.Task.CompletedTask;");
+            }
+            else if (StubDefaults.RequiresNotImplemented(taskResultType))
+            {
+                source.AppendLine("            throw new global::System.NotImplementedException();");
             }
             else
             {
@@ -72,7 +85,14 @@ internal static class StubSourceEmitter
         }
         else if (!method.ReturnsVoid)
         {
-            source.Append("            return ").Append(StubDefaults.GetReturnExpression(method.ReturnType)).AppendLine(";");
+            if (StubDefaults.RequiresNotImplemented(method.ReturnType))
+            {
+                source.AppendLine("            throw new global::System.NotImplementedException();");
+            }
+            else
+            {
+                source.Append("            return ").Append(StubDefaults.GetReturnExpression(method.ReturnType)).AppendLine(";");
+            }
         }
 
         source.AppendLine("        }");
@@ -87,7 +107,17 @@ internal static class StubSourceEmitter
         source.Append("        ").Append(SymbolFormatting.GetPropertyDeclaration(property));
         if (!useStorage)
         {
-            source.Append(" { get; set; } = ").Append(StubDefaults.GetReturnExpression(property.Type)).AppendLine(";");
+            if (StubDefaults.RequiresNotImplemented(property.Type, property.NullableAnnotation))
+            {
+                source.AppendLine();
+                source.AppendLine("        {");
+                source.AppendLine("            get => throw new global::System.NotImplementedException();");
+                source.AppendLine("            set { }");
+                source.AppendLine("        }");
+                return;
+            }
+
+            source.Append(" { get; set; } = ").Append(StubDefaults.GetReturnExpression(property.Type, property.NullableAnnotation)).AppendLine(";");
             return;
         }
 
@@ -134,8 +164,20 @@ internal static class StubSourceEmitter
         {
             source.Append("        public ")
                 .Append(property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
-                .Append(' ').Append(property.Name).Append(" { get; set; } = ")
-                .Append(StubDefaults.GetReturnExpression(property.Type)).AppendLine(";");
+                .Append(' ').Append(property.Name);
+            if (StubDefaults.RequiresNotImplemented(property.Type, property.NullableAnnotation))
+            {
+                source.AppendLine();
+                source.AppendLine("        {");
+                source.AppendLine("            get => throw new global::System.NotImplementedException();");
+                source.AppendLine("            set { }");
+                source.AppendLine("        }");
+            }
+            else
+            {
+                source.Append(" { get; set; } = ")
+                    .Append(StubDefaults.GetReturnExpression(property.Type, property.NullableAnnotation)).AppendLine(";");
+            }
         }
         source.AppendLine("    }");
         source.AppendLine("}");

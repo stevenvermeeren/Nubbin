@@ -16,10 +16,13 @@ Generated methods use these return values:
 - `void`: an empty method body
 - `Task`: `Task.CompletedTask`
 - `Task<T>`: a completed task containing the generated default value
-- Other return types: `default!`
+- Non-nullable reference types without a supported default: `NotImplementedException`
+- Nullable reference types and other return types: `default!`
 - `out` parameters: `default!`
 
-Reference-type defaults are `null`; value types use their normal default value.
+Nullable reference-type defaults are `null`; value types use their normal default
+value. Non-nullable reference types use an accessible parameterless constructor when
+available, otherwise the generated member throws `NotImplementedException`.
 Collection interfaces receive empty compatible collections instead of `null`:
 
 - `IEnumerable<T>`, `IReadOnlyCollection<T>`, and `IReadOnlyList<T>`: an empty array

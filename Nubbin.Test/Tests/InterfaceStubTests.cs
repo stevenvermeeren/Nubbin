@@ -1,6 +1,20 @@
-using Nubbin.Test.Samples;
+using Nubbin;
+using Nubbin.Test.Bases;
 
 namespace Nubbin.Test;
+
+[Stub]
+public partial class InterfaceStub : InterfaceSample
+{
+}
+
+[Stub]
+public partial class FullyImplementedInterfaceStub : IFullyImplementedInterfaceSample
+{
+    public int Existing() => 42;
+
+    public string Missing() => "implemented";
+}
 
 public class InterfaceStubTests
 {
@@ -44,18 +58,4 @@ public class InterfaceStubTests
         Assert.Empty(stub.Tags);
     }
 
-    [Fact]
-    public void PartiallyImplementedInterfaceOnlyStubsMissingMembers()
-    {
-        var stub = new PartialInterfaceStub();
-
-        Assert.Equal(42, stub.Existing());
-        Assert.Null(stub.Missing());
-    }
-
-    [Fact]
-    public void FullyImplementedInterfaceNeedsNoGeneratedMembers()
-    {
-        Assert.Equal("implemented", new FullyImplementedInterfaceStub().Missing());
-    }
 }

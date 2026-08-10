@@ -1,6 +1,12 @@
-using Nubbin.Test.Samples;
+using Nubbin;
+using Nubbin.Test.Bases;
 
 namespace Nubbin.Test;
+
+[Stub]
+public partial class AsyncStub : IAsyncSample
+{
+}
 
 public class AsyncStubTests
 {
