@@ -11,6 +11,29 @@ public class AbstractStubTests
     }
 
     [Fact]
+    public void StubbedAbstractPropertyUsesDefaultValue()
+    {
+        var stub = new AbstractStub();
+
+        Assert.Null(stub.Value);
+        stub.Value = "updated";
+        Assert.Equal("updated", stub.Value);
+    }
+
+    [Fact]
+    public void StubbedOneSidedAbstractPropertiesMatchBaseAccessors()
+    {
+        var stub = new AbstractStub();
+
+        Assert.Null(stub.GetterOnly);
+        stub.Properties.GetterOnly = "updated";
+        Assert.Equal("updated", stub.GetterOnly);
+
+        stub.SetterOnly = 42;
+        Assert.Equal(42, stub.Properties.SetterOnly);
+    }
+
+    [Fact]
     public void StubbedProtectedAbstractMethodReturnsDefault()
     {
         Assert.Equal(0, new AbstractStub().CallProtected(1));

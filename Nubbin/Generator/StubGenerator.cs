@@ -31,7 +31,8 @@ public sealed class StubGenerator : IIncrementalGenerator
     private static void Emit(SourceProductionContext context, INamedTypeSymbol type, ClassDeclarationSyntax declaration)
     {
         var methods = FindMissingMethods(type).ToArray();
-        if (methods.Length == 0)
+        var properties = FindMissingProperties(type).ToArray();
+        if (methods.Length == 0 && properties.Length == 0)
         {
             return;
         }
@@ -73,8 +74,67 @@ public sealed class StubGenerator : IIncrementalGenerator
             source.AppendLine("    }");
         }
 
+        foreach (var property in properties)
+        {
+            var accessors = GetPropertyAccessors(property);
+            source.Append("    ").Append(GetPropertyDeclaration(property)).AppendLine("\n    {");
+            if (accessors.Contains("get;", StringComparison.Ordinal))
+            {
+                source.Append("        get => Properties.").Append(property.Name).AppendLine(";");
+            }
+            if (accessors.Contains("set;", StringComparison.Ordinal))
+            {
+                source.Append("        set => Properties.").Append(property.Name).AppendLine(" = value;");
+            }
+
+            source.AppendLine("    }");
+        }
+
+        if (properties.Length > 0)
+        {
+            source.AppendLine("    public PropertyAccessor Properties { get; } = new PropertyAccessor();");
+            source.AppendLine("    public class PropertyAccessor");
+            source.AppendLine("    {");
+            foreach (var property in properties)
+            {
+                source.Append("        public ")
+                    .Append(property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+                    .Append(' ').Append(property.Name).Append(" { get; set; } = ")
+                    .Append(GetReturnExpression(property.Type)).AppendLine(";");
+            }
+
+            source.AppendLine("    }");
+        }
+
         source.AppendLine("}");
         context.AddSource(type.Name + ".Stub.g.cs", source.ToString());
+    }
+
+    private static IEnumerable<IPropertySymbol> FindMissingProperties(INamedTypeSymbol type)
+    {
+        var candidates = new List<IPropertySymbol>();
+
+        for (var baseType = type.BaseType; baseType is not null; baseType = baseType.BaseType)
+        {
+            candidates.AddRange(baseType.GetMembers().OfType<IPropertySymbol>().Where(property => property.IsAbstract && !property.IsIndexer));
+        }
+
+        foreach (var interfaceType in type.AllInterfaces)
+        {
+            candidates.AddRange(interfaceType.GetMembers().OfType<IPropertySymbol>().Where(property => !property.IsIndexer));
+        }
+
+        var emitted = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var candidate in candidates)
+        {
+            var key = candidate.Name + ":" + candidate.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (!emitted.Add(key) || HasConcreteImplementation(type, candidate))
+            {
+                continue;
+            }
+
+            yield return candidate;
+        }
     }
 
     private static IEnumerable<IMethodSymbol> FindMissingMethods(INamedTypeSymbol type)
@@ -83,12 +143,12 @@ public sealed class StubGenerator : IIncrementalGenerator
 
         for (var baseType = type.BaseType; baseType is not null; baseType = baseType.BaseType)
         {
-            candidates.AddRange(baseType.GetMembers().OfType<IMethodSymbol>().Where(method => method.IsAbstract));
+            candidates.AddRange(baseType.GetMembers().OfType<IMethodSymbol>().Where(IsStubMethod));
         }
 
         foreach (var interfaceType in type.AllInterfaces)
         {
-            candidates.AddRange(interfaceType.GetMembers().OfType<IMethodSymbol>().Where(method => method.IsAbstract));
+            candidates.AddRange(interfaceType.GetMembers().OfType<IMethodSymbol>().Where(IsStubMethod));
         }
 
         var emitted = new HashSet<string>(StringComparer.Ordinal);
@@ -102,6 +162,12 @@ public sealed class StubGenerator : IIncrementalGenerator
 
             yield return candidate;
         }
+    }
+
+    private static bool IsStubMethod(IMethodSymbol method)
+    {
+        return method.IsAbstract &&
+            method.MethodKind is not MethodKind.PropertyGet and not MethodKind.PropertySet;
     }
 
     private static bool HasConcreteImplementation(INamedTypeSymbol type, IMethodSymbol candidate)
@@ -119,6 +185,27 @@ public sealed class StubGenerator : IIncrementalGenerator
             if (method is not null)
             {
                 return !method.IsAbstract;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasConcreteImplementation(INamedTypeSymbol type, IPropertySymbol candidate)
+    {
+        if (candidate.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            var implementation = type.FindImplementationForInterfaceMember(candidate);
+            return implementation is not null && !implementation.IsAbstract;
+        }
+
+        for (var current = type; current is not null; current = current.BaseType)
+        {
+            var property = current.GetMembers(candidate.Name).OfType<IPropertySymbol>()
+                .FirstOrDefault(item => SymbolEqualityComparer.Default.Equals(item.Type, candidate.Type));
+            if (property is not null)
+            {
+                return !property.IsAbstract;
             }
         }
 
@@ -193,9 +280,58 @@ public sealed class StubGenerator : IIncrementalGenerator
         return accessibility + " " + overrideModifier + returnType + " " + method.Name + typeParameters + "(" + parameters + ")";
     }
 
+    private static string GetPropertyDeclaration(IPropertySymbol property)
+    {
+        var propertyType = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var overrideModifier = property.ContainingType.TypeKind == TypeKind.Interface ? string.Empty : "override ";
+        var accessibility = property.ContainingType.TypeKind == TypeKind.Interface
+            ? "public"
+            : GetPropertyAccessibility(property);
+
+        return accessibility + " " + overrideModifier + propertyType + " " + property.Name;
+    }
+
+    private static string GetPropertyAccessors(IPropertySymbol property)
+    {
+        if (property.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            return "get; set;";
+        }
+
+        var accessors = new StringBuilder();
+        if (property.GetMethod is not null)
+        {
+            accessors.Append("get;");
+        }
+
+        if (property.SetMethod is not null)
+        {
+            if (accessors.Length > 0)
+            {
+                accessors.Append(' ');
+            }
+
+            accessors.Append("set;");
+        }
+
+        return accessors.ToString();
+    }
+
     private static string GetMethodAccessibility(IMethodSymbol method)
     {
         return method.DeclaredAccessibility switch
+        {
+            Accessibility.Protected => "protected",
+            Accessibility.Internal => "internal",
+            Accessibility.ProtectedOrInternal => "protected internal",
+            Accessibility.ProtectedAndInternal => "private protected",
+            _ => "public"
+        };
+    }
+
+    private static string GetPropertyAccessibility(IPropertySymbol property)
+    {
+        return property.DeclaredAccessibility switch
         {
             Accessibility.Protected => "protected",
             Accessibility.Internal => "internal",

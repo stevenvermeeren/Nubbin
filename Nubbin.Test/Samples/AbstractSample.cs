@@ -4,6 +4,11 @@ public abstract class AbstractSample
 {
     public abstract string Create(int value);
 
+    public abstract object Value { get; set; }
+
+    public abstract object GetterOnly { get; }
+    public abstract int SetterOnly { set; }
+
     protected abstract int CreateProtected(int value);
 }
 
