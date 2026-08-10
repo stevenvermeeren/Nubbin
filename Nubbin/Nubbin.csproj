@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>true</IsPackable>
     <PackageId>Nubbin</PackageId>
-    <Version>0.2.0</Version> <!-- x-release-please-version -->
+    <Version>0.3.0</Version> <!-- x-release-please-version -->
     <Authors>Nubbin contributors</Authors>
     <Description>A C# source generator for creating dummy implementations of abstract and interface members.</Description>
     <PackageTags>source-generator;roslyn;stubs;testing;mocking</PackageTags>
