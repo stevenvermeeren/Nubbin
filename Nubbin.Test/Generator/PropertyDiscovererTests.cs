@@ -2,56 +2,56 @@ using Microsoft.CodeAnalysis;
 
 namespace Nubbin.Test.Generator;
 
-public class StubMemberDiscoveryTests
+public class PropertyDiscovererTests
 {
+    private readonly PropertyDiscoverer _target = new();
+
     [Fact]
     public void FindsMissingMembersAcrossBaseTypesAndInterfacesWithoutDuplicates()
     {
         const string source = """
             public abstract class Base
             {
-                public abstract string BaseMethod();
                 public abstract int Value { get; set; }
             }
             public interface IContract
             {
-                string InterfaceMethod();
                 int Value { get; set; }
             }
             public class Subject : Base, IContract
             {
-                public override string BaseMethod() => \"implemented\";
-                public string InterfaceMethod() => \"implemented\";
             }
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        Assert.Empty(Nubbin.Generator.StubMemberDiscovery.FindMissingMethods(type));
-        var properties = Nubbin.Generator.StubMemberDiscovery.FindMissingProperties(type).ToArray();
+        var properties = _target.GetSymbolsMissingImplementation(type).ToArray();
         Assert.Single(properties);
         Assert.Equal("Value", properties[0].Name);
     }
 
     [Fact]
-    public void FindsAbstractMethodsAndPropertiesThatRemainUnimplemented()
+    public void FindsAbstractPropertiesThatRemainUnimplemented()
     {
         const string source = """
             public abstract class Base
             {
-                protected abstract int Create(int value);
                 public abstract string Name { get; }
+                public abstract int Age { get; }
             }
-            public class Subject : Base
+            public interface IContract
             {
-                protected override int Create(int value) => value;
+                bool Exists { get; set; }
+            }
+            public class Subject : Base, IContract
+            {
+                public override int Age { get; }
             }
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var methods = Nubbin.Generator.StubMemberDiscovery.FindMissingMethods(type).ToArray();
-        var properties = Nubbin.Generator.StubMemberDiscovery.FindMissingProperties(type).ToArray();
+        var properties = _target.GetSymbolsMissingImplementation(type).ToArray();
 
-        Assert.Empty(methods);
-        Assert.Equal("Name", Assert.Single(properties).Name);
+        var propertyNames = properties.Select(p => p.Name);
+        Assert.Equal(["Name", "Exists"], propertyNames);
     }
 }

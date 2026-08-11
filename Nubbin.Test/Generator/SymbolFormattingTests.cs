@@ -12,8 +12,8 @@ public class SymbolFormattingTests
         var method = type.GetMembers("Read").OfType<IMethodSymbol>().Single();
         var property = type.GetMembers("Name").OfType<IPropertySymbol>().Single();
 
-        Assert.Equal("public int Read(in string value)", Nubbin.Generator.SymbolFormatting.GetMethodDeclaration(method));
-        Assert.Equal("public string Name", Nubbin.Generator.SymbolFormatting.GetPropertyDeclaration(property));
+        Assert.Equal("public int Read(in string value)", Nubbin.Generator.SymbolFormatting.GetMethodDeclaration(method, type));
+        Assert.Equal("public string Name", Nubbin.Generator.SymbolFormatting.GetPropertyDeclaration(property, type));
         Assert.True(Nubbin.Generator.SymbolFormatting.HasGetter(property));
         Assert.True(Nubbin.Generator.SymbolFormatting.HasSetter(property));
     }

@@ -18,12 +18,11 @@ public sealed class StubGenerator : IIncrementalGenerator
         var targets = context.SyntaxProvider.ForAttributeWithMetadataName(
             "Nubbin.StubAttribute",
             static (node, _) => node is ClassDeclarationSyntax,
-            static (syntaxContext, _) =>
-                ((INamedTypeSymbol)syntaxContext.TargetSymbol, (ClassDeclarationSyntax)syntaxContext.TargetNode));
+            static (syntaxContext, _) => (INamedTypeSymbol)syntaxContext.TargetSymbol);
 
         context.RegisterSourceOutput(targets, static (productionContext, target) =>
         {
-            StubSourceEmitter.Emit(productionContext, target.Item1);
+            StubSourceEmitter.Emit(productionContext, target);
         });
     }
 }
