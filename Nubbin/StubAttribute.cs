@@ -9,7 +9,7 @@
 /// interfaces. Generated methods return default values or completed tasks, and
 /// common collection interfaces receive empty compatible collections.
 /// </remarks>
-[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public class StubAttribute : Attribute
 {
 }

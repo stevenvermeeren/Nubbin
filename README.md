@@ -17,8 +17,9 @@ Generated methods use these return values:
 - `Task`: `Task.CompletedTask`
 - `Task<T>`: a completed task containing the generated default value
 - Non-nullable reference types without a supported default: `NotImplementedException`
-- Nullable reference types and other return types: `default!`
-- `out` parameters: `default!`
+- Nullable reference types and other return types: `default`
+
+The same logic to determine the type applies to out parameters.
 
 Nullable reference-type defaults are `null`; value types use their normal default
 value. Non-nullable reference types use an accessible parameterless constructor when
@@ -55,6 +56,8 @@ Reference the `Nubbin` project or package from a consumer project. The target
 class must be `partial` because source generators add the implementation in a
 separate partial declaration.
 
+### Explicit stubs
+
 ```csharp
 using Nubbin;
 
@@ -89,6 +92,36 @@ public partial class TestReportClient : IReportClient
 `GetTags()` returns an empty `List<string>`, and `Name` uses typed weak-table
 storage with a `null` initial value. The generated storage can be accessed with
 `client.GetPropertyHelper()` when direct inspection or setup is useful.
+
+### Auto stubs
+
+When you only need a default implementation, call `Stub.Auto<T>()` from any
+partial type. The generator creates a nested `Stub` container that returns the
+matching generated stub instance for the requested interface or abstract base
+member type.
+
+```csharp
+using Nubbin;
+
+public interface ILogger {
+  void Log(string message);
+}
+
+public partial class LoggerTest
+{
+    public void Test()
+    {
+        DoProcess(Stub.Auto<ILogger>());
+    }
+
+    private void DoProcess(ILogger logger)
+    { }
+}
+```
+
+This is intended for convenience scenarios where the generated stub only needs to
+provide default behavior and you do not want to define a dedicated stub type by
+hand.
 
 ## Constraints
 

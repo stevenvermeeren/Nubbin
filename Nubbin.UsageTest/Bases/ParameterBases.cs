@@ -7,5 +7,8 @@ public interface IParameterSample
     void ReadNullable(out string? value);
     void ReadConstructible(out DefaultConstructible value);
     void ReadUnsupported(out NoDefaultConstructor value);
+    void ReadTask(out Task value);
+    void ReadConstructibleTask(out Task<DefaultConstructible> value);
+    void ReadUnsupportedTask(out Task<NoDefaultConstructor> value);
     void Inspect(in int value);
 }

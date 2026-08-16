@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Generator;
+using Nubbin.Generator.Discovery;
 
-namespace Nubbin.Test.Generator;
+namespace Nubbin.Test.Generator.Discovery;
 
 public class MethodDiscovererTests
 {
@@ -26,7 +28,7 @@ public class MethodDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var methods = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
         Assert.Single(methods);
         Assert.Equal("BaseMethod", methods[0].Name);
     }
@@ -51,7 +53,7 @@ public class MethodDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var methods = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
 
         var methodNames = methods.Select(p => p.Name);
         Assert.Equal(["BaseMethod", "InterfaceMethod"], methodNames);

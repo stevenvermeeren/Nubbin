@@ -16,9 +16,7 @@ public class StubGeneratorTests
                 public abstract string Read();
             }
             [Nubbin.Stub]
-            public partial class Subject : Base
-            {
-            }
+            public partial class Subject : Base;
             """;
         var compilation = GeneratorTestHelpers.CreateCompilation(source);
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new StubGenerator());
@@ -28,8 +26,33 @@ public class StubGeneratorTests
 
         Assert.Contains("public override int Value", generatedSource);
         Assert.Contains("public override string Read()", generatedSource);
-        Assert.Contains("{ get; set; } = default!;", generatedSource);
+        Assert.Contains("{ get; set; } = default;", generatedSource);
         Assert.Contains("throw new global::System.NotImplementedException();", generatedSource);
+    }
+
+    [Fact]
+    public void ReportsDiagnosticWhenAnnotatedClassIsNotPartial()
+    {
+        const string source = """
+            public abstract class Base
+            {
+                public abstract int Value { get; set; }
+            }
+
+            [Nubbin.Stub]
+            public class Subject : Base;
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new StubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+
+        Assert.Contains(
+            driver.GetRunResult().Diagnostics,
+            diagnostic => diagnostic.Id == Diagnostics.PartialStubError.Id
+                && diagnostic.Location.SourceSpan.Start == 77
+                && diagnostic.Location.SourceSpan.End == 88);
     }
 
     [Fact]

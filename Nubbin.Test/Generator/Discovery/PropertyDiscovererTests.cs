@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Generator;
+using Nubbin.Generator.Discovery;
 
-namespace Nubbin.Test.Generator;
+namespace Nubbin.Test.Generator.Discovery;
 
 public class PropertyDiscovererTests
 {
@@ -24,7 +26,7 @@ public class PropertyDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var properties = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
         Assert.Single(properties);
         Assert.Equal("Value", properties[0].Name);
     }
@@ -49,7 +51,7 @@ public class PropertyDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var properties = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
 
         var propertyNames = properties.Select(p => p.Name);
         Assert.Equal(["Name", "Exists"], propertyNames);

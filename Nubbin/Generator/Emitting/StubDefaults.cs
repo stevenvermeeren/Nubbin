@@ -1,16 +1,18 @@
 using Microsoft.CodeAnalysis;
 
-namespace Nubbin.Generator;
+namespace Nubbin.Generator.Emitting;
 
 internal static class StubDefaults
 {
     public static bool IsTask(ITypeSymbol returnType, out ITypeSymbol? resultType)
     {
-        if (returnType is INamedTypeSymbol namedType &&
-            namedType.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks" &&
-            namedType.Name == "Task")
+        if (returnType is INamedTypeSymbol namedType
+            && namedType.ContainingNamespace.ToDisplayString() == "System.Threading.Tasks"
+            && namedType.Name == "Task")
         {
-            resultType = namedType.TypeArguments.Length == 1 ? namedType.TypeArguments[0] : null;
+            resultType = namedType.TypeArguments.Length == 1
+                ? namedType.TypeArguments[0]
+                : null;
             return true;
         }
 
@@ -18,25 +20,26 @@ internal static class StubDefaults
         return false;
     }
 
-    public static string GetReturnExpression(ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
+    public static string GetReturnExpression(this ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
     {
         var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
-        if (returnType is INamedTypeSymbol collectionType && GetCollectionExpression(collectionType) is { } collectionExpression)
+        if (returnType is INamedTypeSymbol collectionType
+            && GetCollectionExpression(collectionType) is { } collectionExpression)
         {
             return collectionExpression;
         }
 
-        if (returnType is INamedTypeSymbol constructibleType &&
-            effectiveNullableAnnotation == NullableAnnotation.NotAnnotated &&
-            HasPublicParameterlessConstructor(constructibleType))
+        if (returnType is INamedTypeSymbol constructibleType
+            && effectiveNullableAnnotation == NullableAnnotation.NotAnnotated
+            && HasPublicParameterlessConstructor(constructibleType))
         {
             return "new " + returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "()";
         }
 
-        return "default!";
+        return "default";
     }
 
-    public static bool RequiresNotImplemented(ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
+    public static bool RequiresNotImplemented(this ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
     {
         var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
         if (!returnType.IsReferenceType || effectiveNullableAnnotation != NullableAnnotation.NotAnnotated)
@@ -56,7 +59,8 @@ internal static class StubDefaults
     {
         return type.TypeKind == TypeKind.Class &&
             type.InstanceConstructors.Any(constructor =>
-                constructor.DeclaredAccessibility == Accessibility.Public && constructor.Parameters.Length == 0);
+                constructor.DeclaredAccessibility == Accessibility.Public 
+                && constructor.Parameters.Length == 0);
     }
 
     private static string? GetCollectionExpression(INamedTypeSymbol type)

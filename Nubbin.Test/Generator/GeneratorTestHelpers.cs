@@ -7,16 +7,19 @@ internal static class GeneratorTestHelpers
 {
     public static Compilation CreateCompilation(string source, NullableContextOptions nullableContext = NullableContextOptions.Enable)
     {
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+            .Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path))
+            .Concat(
+            [
+                MetadataReference.CreateFromFile(typeof(Nubbin.StubAttribute).Assembly.Location)
+            ])
+            .ToArray();
+
         return CSharpCompilation.Create(
             assemblyName: "GeneratorTestAssembly",
             syntaxTrees: [CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest))],
-            references:
-            [
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Task).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Nubbin.StubAttribute).Assembly.Location)
-            ],
+            references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: nullableContext));
     }
 

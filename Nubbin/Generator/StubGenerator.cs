@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Nubbin.Generator.Emitting;
 
 namespace Nubbin.Generator;
 
@@ -18,11 +19,27 @@ public sealed class StubGenerator : IIncrementalGenerator
         var targets = context.SyntaxProvider.ForAttributeWithMetadataName(
             "Nubbin.StubAttribute",
             static (node, _) => node is ClassDeclarationSyntax,
-            static (syntaxContext, _) => (INamedTypeSymbol)syntaxContext.TargetSymbol);
+            static (syntaxContext, _) => syntaxContext);
 
-        context.RegisterSourceOutput(targets, static (productionContext, target) =>
+        context.RegisterSourceOutput(targets, static (productionContext, syntaxContext) =>
         {
-            StubSourceEmitter.Emit(productionContext, target);
+            var target = (INamedTypeSymbol)syntaxContext.TargetSymbol;
+            if (!productionContext.CheckPartial(
+                    target, 
+                    () => GetAttributeFromClass(syntaxContext).GetLocation(),
+                    Diagnostics.PartialStubError))
+                return;
+
+            var source = StubSourceEmitter.Emit(target);
+            productionContext.AddSource(target.Name + ".Stub.g.cs", source);
         });
+    }
+
+    private static AttributeSyntax GetAttributeFromClass(GeneratorAttributeSyntaxContext context)
+    {
+        return context.TargetNode
+            .DescendantNodes()
+            .OfType<AttributeSyntax>()
+            .First(n => context.SemanticModel.GetTypeInfo(n).Type?.Name == "StubAttribute");
     }
 }

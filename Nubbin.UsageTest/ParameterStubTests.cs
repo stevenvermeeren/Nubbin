@@ -23,20 +23,25 @@ public class ParameterStubTests
     }
 
     [Fact]
-    public void OutParametersUseReturnValueDefaults()
+    public async Task OutParametersUseReturnValueDefaults()
     {
         var stub = new ParameterStub();
 
         stub.ReadNullable(out var nullableResult);
         stub.ReadConstructible(out var constructibleResult);
+        stub.ReadTask(out var basicTask);
+        stub.ReadConstructibleTask(out var typedTask);
 
         Assert.Null(nullableResult);
         Assert.Equal(42, constructibleResult.Value);
+        Assert.True(basicTask.IsCompleted);
+        Assert.Equal(42, (await typedTask).Value);
     }
 
     [Fact]
     public void UnsupportedNonNullableOutParameterThrows()
     {
         Assert.Throws<NotImplementedException>(() => new ParameterStub().ReadUnsupported(out _));
+        Assert.Throws<NotImplementedException>(() => new ParameterStub().ReadUnsupportedTask(out _));
     }
 }

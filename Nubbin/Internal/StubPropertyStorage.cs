@@ -1,9 +1,11 @@
 using System.Runtime.CompilerServices;
 
-namespace Nubbin;
+namespace Nubbin.Internal;
 
 /// <summary>
 /// Stores strongly typed generated property state without adding storage members to stub types.
+/// Not intended for direct usage by consumers, but public as it has to be callable from the generated
+/// code in other assemblies.
 /// </summary>
 public static class StubPropertyStorage<TStub, TProperties>
     where TStub : class

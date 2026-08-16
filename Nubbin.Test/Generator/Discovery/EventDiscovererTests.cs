@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Generator;
+using Nubbin.Generator.Discovery;
 
-namespace Nubbin.Test.Generator;
+namespace Nubbin.Test.Generator.Discovery;
 
 public class EventDiscovererTests
 {
@@ -24,7 +26,7 @@ public class EventDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var events = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
         Assert.Single(events);
         Assert.Equal("BaseEvent", events[0].Name);
     }
@@ -49,7 +51,7 @@ public class EventDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var events = _target.GetSymbolsMissingImplementation(type).ToArray();
+        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
 
         var eventNames = events.Select(e => e.Name);
         Assert.Equal(["BaseEvent", "InterfaceEvent2"], eventNames);

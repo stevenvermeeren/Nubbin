@@ -27,7 +27,7 @@ jobs:
         run: dotnet build Nubbin.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Nubbin.slnx --configuration Release --no-build
+        run: dotnet test Nubbin.slnx /p:CollectCoverage=true --configuration Release --no-build
 
       - name: Pack release candidate
         if: >-
