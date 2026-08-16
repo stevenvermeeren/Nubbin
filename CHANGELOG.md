@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.4.0...Nubbin-v0.5.0) (2026-08-16)
+
+
+### Features
+
+* Add auto-stubs ([5730255](https://github.com/stevenvermeeren/Nubbin/commit/57302554d3a8dae377a1c4e08145a040f11425e7))
+* Add support for events ([cbdd627](https://github.com/stevenvermeeren/Nubbin/commit/cbdd627cb73e9059aa7629e886ce9b27a48df8dc))
+
 ## [0.4.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.3.0...Nubbin-v0.4.0) (2026-08-10)
 
 
