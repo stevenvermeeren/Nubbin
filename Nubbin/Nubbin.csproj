@@ -8,7 +8,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>Nubbin</PackageId>
     <Version>0.5.0</Version> <!-- x-release-please-version -->
-    <Authors>Nubbin contributors</Authors>
+    <Authors>Steven Vermeeren</Authors>
     <Description>A C# source generator for creating dummy implementations of abstract and interface members.</Description>
     <PackageTags>source-generator;roslyn;stubs;testing;mocking</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -31,13 +31,8 @@
     <None Include="../LICENSE" Pack="true" PackagePath="LICENSE" />
   </ItemGroup>
 
-  <Target Name="PackSourceGenerator" BeforeTargets="Pack">
-    <ItemGroup>
-      <None Include="$(TargetPath)"
-            Pack="true"
-            PackagePath="analyzers/dotnet/cs"
-            Visible="false" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
 </Project>
