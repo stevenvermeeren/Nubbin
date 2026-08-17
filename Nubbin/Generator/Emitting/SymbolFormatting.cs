@@ -10,12 +10,28 @@ internal static class SymbolFormatting
         return type.ToFullString() + "Stub";
     }
 
+    private static readonly SymbolDisplayFormat FullyQualifiedFormat =
+        SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(
+            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
     public static string ToQualifiedString(this ITypeSymbol type)
     {
-        var name = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        if (type.NullableAnnotation == NullableAnnotation.Annotated)
-            name += "?";
-        return name;
+        if (type is INamedTypeSymbol nts && type.SpecialType != SpecialType.System_Void)
+        {
+            // custom logic to ensure ? on types define without nullability awareness
+            var res = $"{GetFullyQualifiedName(nts)}";
+            if (nts.IsGenericType)
+            {
+                res += "<";
+                res += string.Join(", ", nts.TypeArguments.Select(a => a.ToQualifiedString()));
+                res += ">";
+            }
+            if (nts.NullableAnnotation != NullableAnnotation.NotAnnotated)
+                res += "?";
+            return res;
+        }
+
+        return type.ToDisplayString(FullyQualifiedFormat);
     }
 
     public static string GetFullyQualifiedName(INamespaceSymbol _namespace, TypeSyntax type)
@@ -27,6 +43,8 @@ internal static class SymbolFormatting
 
     public static string GetFullyQualifiedName(this INamedTypeSymbol symbol)
     {
+        if (symbol.SpecialType != SpecialType.None)
+            return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         if (symbol.ContainingNamespace.IsGlobalNamespace)
             return $"global::{symbol.Name}";
         return $"global::{symbol.ContainingNamespace.ToDisplayString()}.{symbol.Name}";

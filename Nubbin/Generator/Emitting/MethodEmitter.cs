@@ -27,20 +27,20 @@ internal static class MethodEmitter
                     source
                         .Append(parameter.Name)
                         .Append(" = global::System.Threading.Tasks.Task.FromResult<")
-                        .Append(outTaskResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+                        .Append(outTaskResultType.ToQualifiedString())
                         .Append(">(")
                         .Append(StubDefaults.GetReturnExpression(outTaskResultType))
                         .AppendLine(");");
                 }
             }
-            else if (StubDefaults.RequiresNotImplemented(parameter.Type, parameter.NullableAnnotation))
+            else if (StubDefaults.RequiresNotImplemented(parameter.Type))
             {
                 source.AppendLine("throw new global::System.NotImplementedException();");
             }
             else
             {
                 source.Append(parameter.Name).Append(" = ")
-                    .Append(StubDefaults.GetReturnExpression(parameter.Type, parameter.NullableAnnotation))
+                    .Append(StubDefaults.GetReturnExpression(parameter.Type))
                     .AppendLine(";");
             }
         }
@@ -58,7 +58,7 @@ internal static class MethodEmitter
             else
             {
                 source.Append("return global::System.Threading.Tasks.Task.FromResult<")
-                    .Append(taskResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+                    .Append(taskResultType.ToQualifiedString())
                     .Append(">(")
                     .Append(StubDefaults.GetReturnExpression(taskResultType))
                     .AppendLine(");");
@@ -79,7 +79,7 @@ internal static class MethodEmitter
         source.Pop().AppendLine("}");
     }
 
-    public static string GetMethodDeclaration(this StubDefinition type, IMethodSymbol method)
+    private static string GetMethodDeclaration(this StubDefinition type, IMethodSymbol method)
     {
         var returnType = method.ReturnType.ToQualifiedString();
         var parameters = string.Join(", ", method.Parameters.Select(parameter =>
@@ -90,8 +90,8 @@ internal static class MethodEmitter
                 RefKind.Out => "out ",
                 RefKind.In => "in ",
                 _ => string.Empty
-            }) + parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + " " + parameter.Name));
-        var typeParameters = method.Arity == 0 ? string.Empty : "<" + string.Join(", ", method.TypeParameters.Select(parameter => parameter.Name)) + ">";
+            }) + parameter.Type.ToQualifiedString() + " " + parameter.Name));
+        var typeParameters = method.Arity == 0 ? string.Empty : "<" + string.Join(", ", method.TypeParameters.Select(parameter => parameter.ToQualifiedString())) + ">";
         var overrideModifier = method.ContainingType.TypeKind == TypeKind.Interface ? string.Empty : "override ";
         var accessibility = method.GetMemberAccessibility(type.ContainingAssembly);
 

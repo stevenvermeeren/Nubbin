@@ -18,7 +18,7 @@ internal static class EventEmitter
 
     private static string GetEventDeclaration(this StubDefinition type, IEventSymbol _event)
     {
-        var eventType = _event.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var eventType = _event.Type.ToQualifiedString();
         var overrideModifier = _event.ContainingType.TypeKind == TypeKind.Interface
             ? string.Empty
             : "override ";

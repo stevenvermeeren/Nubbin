@@ -39,7 +39,7 @@ internal static class PropertyEmitter
 
     public static void AppendAutoPropertyBody(this IndentedStringBuilder source, IPropertySymbol property)
     {
-        if (property.Type.RequiresNotImplemented(property.NullableAnnotation))
+        if (property.Type.RequiresNotImplemented())
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
@@ -51,7 +51,7 @@ internal static class PropertyEmitter
         {
             source
                 .Append(" { get; set; } = ")
-                .Append(property.Type.GetReturnExpression(property.NullableAnnotation))
+                .Append(property.Type.GetReturnExpression())
                 .AppendLine(";");
         }
     }

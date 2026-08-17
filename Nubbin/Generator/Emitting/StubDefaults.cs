@@ -20,9 +20,8 @@ internal static class StubDefaults
         return false;
     }
 
-    public static string GetReturnExpression(this ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
+    public static string GetReturnExpression(this ITypeSymbol returnType)
     {
-        var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
         if (returnType is INamedTypeSymbol collectionType
             && GetCollectionExpression(collectionType) is { } collectionExpression)
         {
@@ -30,7 +29,7 @@ internal static class StubDefaults
         }
 
         if (returnType is INamedTypeSymbol constructibleType
-            && effectiveNullableAnnotation == NullableAnnotation.NotAnnotated
+            && returnType.NullableAnnotation == NullableAnnotation.NotAnnotated
             && HasPublicParameterlessConstructor(constructibleType))
         {
             return "new " + returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "()";
@@ -39,10 +38,9 @@ internal static class StubDefaults
         return "default";
     }
 
-    public static bool RequiresNotImplemented(this ITypeSymbol returnType, NullableAnnotation? nullableAnnotation = null)
+    public static bool RequiresNotImplemented(this ITypeSymbol returnType)
     {
-        var effectiveNullableAnnotation = nullableAnnotation ?? returnType.NullableAnnotation;
-        if (!returnType.IsReferenceType || effectiveNullableAnnotation != NullableAnnotation.NotAnnotated)
+        if (!returnType.IsReferenceType || returnType.NullableAnnotation != NullableAnnotation.NotAnnotated)
         {
             return false;
         }
@@ -67,7 +65,7 @@ internal static class StubDefaults
     {
         var typeName = type.ContainingNamespace.ToDisplayString() + "." + type.Name;
         var typeArguments = type.TypeArguments
-            .Select(argument => argument.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+            .Select(argument => argument.ToQualifiedString())
             .ToArray();
 
         return typeName switch

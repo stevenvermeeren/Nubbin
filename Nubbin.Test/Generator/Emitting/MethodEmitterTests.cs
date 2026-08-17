@@ -24,6 +24,24 @@ public class MethodEmitterTests
     }
 
     [Fact]
+    public void AppendMethod_ObliviousType_BecomesNullable()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface IComponent { string Name(string value); }",
+            NullableContextOptions.Disable);
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("Name").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("public string? Name(string? value)", result);
+        Assert.Contains("return default;", result);
+    }
+
+    [Fact]
     public void AppendMethod_OutParameter_ThrowsWhenNotConstructible()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
@@ -72,6 +90,41 @@ public class MethodEmitterTests
     }
 
     [Fact]
+    public void AppendMethod_TaskOfT_ReturnsTaskForNullable()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface IComponent { System.Threading.Tasks.Task<string?> GetAsync(); }");
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("public global::System.Threading.Tasks.Task<string?> GetAsync()", result);
+        Assert.Contains("global::System.Threading.Tasks.Task.FromResult<string?>(default)", result);
+    }
+
+    [Fact]
+    public void AppendMethod_TaskOfT_ReturnsTaskForOblivious()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface IComponent { System.Threading.Tasks.Task<string> GetAsync(); }",
+            NullableContextOptions.Disable);
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("public global::System.Threading.Tasks.Task<string?>? GetAsync()", result);
+        Assert.Contains("global::System.Threading.Tasks.Task.FromResult<string?>(default)", result);
+    }
+
+    [Fact]
     public void AppendMethod_TaskOfT_ThrowsForUnconstructible()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
@@ -84,6 +137,7 @@ public class MethodEmitterTests
 
         var result = builder.ToString();
 
+        Assert.Contains("public global::System.Threading.Tasks.Task<string> GetAsync()", result);
         Assert.Contains("throw new global::System.NotImplementedException();", result);
     }
 
