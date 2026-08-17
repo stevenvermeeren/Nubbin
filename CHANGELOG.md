@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.5.0...Nubbin-v0.5.1) (2026-08-17)
+
+
+### Bug Fixes
+
+* nullability enhancements ([7b8c9a0](https://github.com/stevenvermeeren/Nubbin/commit/7b8c9a030f985b5b7dedcf9fc8633866b3ba8f80))
+* properly pack as analyser ([9e6a321](https://github.com/stevenvermeeren/Nubbin/commit/9e6a321e98f1531bb9c40e3947f91fbf8e3f3597))
+
 ## [0.5.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.4.0...Nubbin-v0.5.0) (2026-08-16)
 
 
