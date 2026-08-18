@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.5.1...Nubbin-v0.6.0) (2026-08-18)
+
+
+### Features
+
+* Add support for nested stubs and stubbing nested types ([dc509e0](https://github.com/stevenvermeeren/Nubbin/commit/dc509e0a9af75b4c92575db75615ce5bed8cffdc))
+
 ## [0.5.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.5.0...Nubbin-v0.5.1) (2026-08-17)
 
 
