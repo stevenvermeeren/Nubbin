@@ -19,29 +19,31 @@ internal static class StubSourceEmitter
         var builder = new IndentedStringBuilder();
         builder.WithNamespace(type.Namespace, () =>
         {
-            builder.WithClass(
-                new ClassEmitter.Definition(type)
-                {
-                    IsPartial = type.LeafType is not null,
-                    BaseTypes = type.BaseType is null ? [] : [type.BaseType]
-                },
-                () =>
-                {
-                    foreach (var method in new MethodDiscoverer().GetSymbolsMissingImplementation(type))
+            builder.WithContainingTypes(type.ContainingType, () => {
+                builder.WithClass(
+                    new ClassEmitter.Definition(type)
                     {
-                        builder.AppendMethod(method, type);
-                    }
+                        IsPartial = type.LeafType is not null,
+                        BaseTypes = type.BaseType is null ? [] : [type.BaseType]
+                    },
+                    () =>
+                    {
+                        foreach (var method in new MethodDiscoverer().GetSymbolsMissingImplementation(type))
+                        {
+                            builder.AppendMethod(method, type);
+                        }
 
-                    foreach (var _event in new EventDiscoverer().GetSymbolsMissingImplementation(type))
-                    {
-                        builder.AppendEvent(type, _event);
-                    }
+                        foreach (var _event in new EventDiscoverer().GetSymbolsMissingImplementation(type))
+                        {
+                            builder.AppendEvent(type, _event);
+                        }
 
-                    foreach (var property in properties)
-                    {
-                        builder.AppendProperty(type, property, storageProperties.Contains(property, SymbolEqualityComparer.Default));
-                    }
-                });
+                        foreach (var property in properties)
+                        {
+                            builder.AppendProperty(type, property, storageProperties.Contains(property, SymbolEqualityComparer.Default));
+                        }
+                    });
+            });
         });
 
         if (storageProperties.Length > 0)
@@ -50,5 +52,22 @@ internal static class StubSourceEmitter
         }
 
         return builder.ToString();
+    }
+
+    private static void WithContainingTypes(
+        this IndentedStringBuilder builder,
+        INamedTypeSymbol? type,
+        Action emitContents)
+    {
+        if (type is not null)
+        {
+            builder.WithContainingTypes(type.ContainingType, () =>
+            {
+                builder.WithClass(new ClassEmitter.Definition(type) { IsPartial = true }, emitContents);
+            });
+        }
+        else {
+            emitContents();
+        }
     }
 }

@@ -9,7 +9,10 @@ internal static class PropertyStorageEmitter
         StubDefinition type,
         IReadOnlyCollection<IPropertySymbol> properties)
     {
-        var typeName = type.DisplayString;
+        var typeName = type.LeafType?.GetFullyQualifiedName();
+        if (typeName is null)
+            throw new NotSupportedException("PropertyStorage only applicable to explicit stubs");
+        
         var qualifiedPropertiesTypeName = GetQualifiedPropertyStorageTypeName(type);
 
         source.WithNamespace("Nubbin", () =>

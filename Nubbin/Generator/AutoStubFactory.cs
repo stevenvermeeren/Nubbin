@@ -56,27 +56,36 @@ internal class AutoStubFactory
         MemberAccessExpressionSyntax s)
     {
         var stubType = ((GenericNameSyntax)s.Name).TypeArgumentList.Arguments.Single();
-        var stubName = stubType.GetStubTypeName();
-
-        var file = stubName + ".AutoStub.g.cs";
-        if (!_generatedStubs.Add(file))
-            return (file, null);
-
         var typeInfo = _syntaxContext.SemanticModel.GetTypeInfo(stubType);
         var namedTypeSymbol = typeInfo.Type as INamedTypeSymbol
             ?? throw new InvalidOperationException();
+
+        var name = namedTypeSymbol.GetStubTypeName();
+        var file = name + ".AutoStub.g.cs";
+        if (!_generatedStubs.Add(file))
+            return (file, null);
+
+        var _namespace = "Nubbin.Generated";
+        if (!namedTypeSymbol.ContainingNamespace.IsGlobalNamespace) 
+            _namespace += "." + namedTypeSymbol.ContainingNamespace;
         var stub = new StubDefinition
         {
-            Name = stubName,
+            Name = name,
             Accessibility = Accessibility.Internal,
-            Namespace = "Nubbin",
+            Namespace = _namespace,
             BaseType = namedTypeSymbol,
             AllInterfaces = [namedTypeSymbol, ..namedTypeSymbol.AllInterfaces],
-            DisplayString = stubName,
             ContainingAssembly = containerTypeSymbol.ContainingAssembly
         };
 
         return (file, StubSourceEmitter.Emit(stub));
+    }
+
+    private static string CreateStubKey(INamedTypeSymbol type)
+    {
+        if (type.ContainingType is INamedTypeSymbol parent)
+            return $"{CreateStubKey(parent)}_{type.Name}";
+        return type.Name;
     }
 
     private static IEnumerable<MemberAccessExpressionSyntax> FindAutoStubs(SyntaxNode node)

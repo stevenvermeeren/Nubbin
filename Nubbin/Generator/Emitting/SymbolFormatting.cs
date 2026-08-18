@@ -1,13 +1,18 @@
+using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Nubbin.Generator.Emitting;
 
 internal static class SymbolFormatting
 {
-    public static string GetStubTypeName(this TypeSyntax type)
+    public static string GetStubTypeName(this INamedTypeSymbol type)
     {
-        return type.ToFullString() + "Stub";
+        return WithParentTypes(type, '_') + "Stub";
+    }
+
+    public static string GetStubTypeNameWithNamespace(this INamedTypeSymbol type)
+    {
+        return type.GetFullyQualifiedName(false, '_') + "Stub";
     }
 
     private static readonly SymbolDisplayFormat FullyQualifiedFormat =
@@ -34,20 +39,26 @@ internal static class SymbolFormatting
         return type.ToDisplayString(FullyQualifiedFormat);
     }
 
-    public static string GetFullyQualifiedName(INamespaceSymbol _namespace, TypeSyntax type)
-    { 
-        if (_namespace.IsGlobalNamespace)
-            return $"global::{type.ToFullString()}";
-        return $"global::{_namespace.ToDisplayString()}.{type.ToFullString()}";
-    }
-
-    public static string GetFullyQualifiedName(this INamedTypeSymbol symbol)
+    public static string GetFullyQualifiedName(
+        this INamedTypeSymbol symbol,
+        bool includeGlobalPrefix = true,
+        char parentTypeSeparator = '.')
     {
         if (symbol.SpecialType != SpecialType.None)
             return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        if (symbol.ContainingNamespace.IsGlobalNamespace)
-            return $"global::{symbol.Name}";
-        return $"global::{symbol.ContainingNamespace.ToDisplayString()}.{symbol.Name}";
+        
+        var result = new StringBuilder(includeGlobalPrefix ? "global::" : "");
+        if (!symbol.ContainingNamespace.IsGlobalNamespace)
+            result.Append($"{symbol.ContainingNamespace.ToDisplayString()}.");
+        result.Append(WithParentTypes(symbol, parentTypeSeparator));
+        return result.ToString();
+    }
+
+    private static string WithParentTypes(INamedTypeSymbol type, char parentTypeSeparator)
+    {
+        if (type.ContainingType is INamedTypeSymbol parent)
+            return $"{WithParentTypes(parent, parentTypeSeparator)}{parentTypeSeparator}{type.Name}";
+        return type.Name;
     }
 
     public static string AsTypeAccessibility(this Accessibility accessibility)

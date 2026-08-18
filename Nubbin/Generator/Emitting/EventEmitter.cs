@@ -10,10 +10,8 @@ internal static class EventEmitter
         IEventSymbol _event)
     {
         source
-            .Indent()
             .Append(type.GetEventDeclaration(_event))
-            .AppendLine(" { add { } remove { } }")
-            .Pop();
+            .AppendLine(" { add { } remove { } }");
     }
 
     private static string GetEventDeclaration(this StubDefinition type, IEventSymbol _event)

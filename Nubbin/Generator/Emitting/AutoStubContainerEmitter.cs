@@ -17,7 +17,7 @@ internal static class AutoStubContainerEmitter
             {
                 builder.WithClass(new ClassEmitter.Definition(Accessibility.Private, "Stub") { IsStatic = true }, () =>
                 {
-                    builder.Append("public static T Auto<T>() {").Indent();
+                    builder.AppendLine("public static T Auto<T>() {").Indent();
 
                     foreach (var stub in stubs)
                     {
@@ -40,13 +40,11 @@ internal static class AutoStubContainerEmitter
     {
         var stubType = ((GenericNameSyntax)stub.Name).TypeArgumentList.Arguments.Single();
         var typeInfo = syntaxContext.SemanticModel.GetTypeInfo(stubType);
+        var stubTypeSymbol = (INamedTypeSymbol)typeInfo.Type!;
         builder
-            .AppendLine($"if (typeof(T) == typeof({GetStubTypeName(typeInfo, stubType)}))")
+            .AppendLine($"if (typeof(T) == typeof({stubTypeSymbol.GetFullyQualifiedName()}))")
             .Indent()
-            .Append($"return (T)(object)new global::Nubbin.{stubType.GetStubTypeName()}();")
+            .AppendLine($"return (T)(object)new global::Nubbin.Generated.{stubTypeSymbol.GetStubTypeNameWithNamespace()}();")
             .Pop();
     }
-
-    private static string GetStubTypeName(TypeInfo typeInfo, TypeSyntax stubType)
-        => SymbolFormatting.GetFullyQualifiedName(typeInfo.Type!.ContainingNamespace, stubType);
 }

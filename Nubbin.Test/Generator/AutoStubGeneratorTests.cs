@@ -41,8 +41,39 @@ public class AutoStubGeneratorTests
 
         Assert.Contains("typeof(T) == typeof(global::IComponent)", generatedSource);
         Assert.Contains("typeof(T) == typeof(global::AbstractComponent)", generatedSource);
-        Assert.Contains("new global::Nubbin.IComponentStub()", generatedSource);
-        Assert.Contains("new global::Nubbin.AbstractComponentStub()", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.AbstractComponentStub()", generatedSource);
+    }
+
+    [Fact]
+    public void CanStubNestedType()
+    {
+        const string source = """
+            public partial class Consumer
+            {
+                public interface IComponent
+                {
+                    int Value { get; set; }
+                }
+
+                public void Test()
+                {
+                    var interfaceStub = Stub.Auto<IComponent>();
+                    _ = interfaceStub.Value;
+                }
+            }
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new AutoStubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var generatedSource = string.Join(
+            Environment.NewLine,
+            driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
+
+        Assert.Contains("typeof(T) == typeof(global::Consumer.IComponent)", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.Consumer_IComponentStub()", generatedSource);
     }
 
     [Fact]
