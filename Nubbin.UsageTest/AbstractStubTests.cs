@@ -1,6 +1,6 @@
-using Nubbin.UsageTests.Bases;
+using Nubbin.UsageTest.Bases;
 
-namespace Nubbin.UsageTests;
+namespace Nubbin.UsageTest;
 
 [Stub]
 public partial class AbstractStub : AbstractSample

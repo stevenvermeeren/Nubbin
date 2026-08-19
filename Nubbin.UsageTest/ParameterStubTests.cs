@@ -1,4 +1,4 @@
-using Nubbin.UsageTests.Bases;
+using Nubbin.UsageTest.Bases;
 
 namespace Nubbin.UsageTest;
 

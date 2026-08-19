@@ -1,4 +1,4 @@
-namespace Nubbin.UsageTests.Bases;
+namespace Nubbin.UsageTest.Bases;
 
 public sealed class DefaultConstructible
 {

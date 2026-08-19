@@ -29,7 +29,7 @@ public sealed class StubGenerator : IIncrementalGenerator
                 return;
 
             var source = StubSourceEmitter.Emit(target);
-            productionContext.AddSource(target.Name + ".Stub.g.cs", source);
+            productionContext.AddSource(target.GetStubTypeNameWithNamespace() + ".Stub.g.cs", source);
         });
     }
 
