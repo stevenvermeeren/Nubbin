@@ -18,7 +18,6 @@ public partial class NestedStubTests
         Assert.True(stub.Value);
     }
 
-
     [Fact]
     public void CanHaveNestedStubClass()
     {

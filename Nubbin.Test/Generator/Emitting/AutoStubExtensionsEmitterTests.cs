@@ -4,18 +4,19 @@ using Nubbin.Generator;
 
 namespace Nubbin.Test.Generator.Emitting;
 
-public class AutoStubContainerEmitterTests
+public class AutoStubExtensionsEmitterTests
 {
     [Fact]
     public void EmitsFactoryLookupForRequestedInterfaceStub()
     {
         const string source = """
+            using Nubbin;
             public interface IComponent
             {
                 int Value { get; set; }
             }
 
-            public partial class Consumer
+            public class Consumer
             {
                 public void Test()
                 {

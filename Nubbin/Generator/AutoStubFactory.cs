@@ -7,17 +7,21 @@ namespace Nubbin.Generator;
 
 internal class AutoStubFactory
 {
-    private readonly HashSet<string> _generatedStubs = [];
+    private readonly Dictionary<string, INamedTypeSymbol> _generatedStubs;
     private readonly SourceProductionContext _productionContext;
     private readonly GeneratorSyntaxContext _syntaxContext;
 
-    public AutoStubFactory(SourceProductionContext productionContext, GeneratorSyntaxContext syntaxContext)
+    public AutoStubFactory(
+        SourceProductionContext productionContext,
+        GeneratorSyntaxContext syntaxContext,
+        Dictionary<string, INamedTypeSymbol> generatedStubs)
     {
         _productionContext = productionContext;
         _syntaxContext = syntaxContext;
+        _generatedStubs = generatedStubs;
     }
 
-    public void Generate(CompilationUnitSyntax unit)
+    public void Process(CompilationUnitSyntax unit)
     {
         foreach (var containingClass in unit.DescendantNodes().OfType<ClassDeclarationSyntax>())
         {
@@ -31,13 +35,10 @@ internal class AutoStubFactory
         if (!stubs.Any())
             return;
 
-        var containerTypeInfo = _syntaxContext.SemanticModel.GetDeclaredSymbol(containingClass);
-        var containerTypeSymbol = containerTypeInfo ?? throw new InvalidOperationException();
+        var containerTypeSymbol = _syntaxContext.SemanticModel.GetDeclaredSymbol(containingClass)
+            ?? throw new InvalidOperationException("Unable to find TypeSymbol for class");
 
-        if (!_productionContext.CheckPartial(
-                containerTypeSymbol,
-                containingClass.Identifier.GetLocation,
-                Diagnostics.PartialAutoStubError))
+        if (HasDiagnosticError(containerTypeSymbol, containingClass))
             return;
 
         foreach (var stub in stubs)
@@ -46,9 +47,6 @@ internal class AutoStubFactory
             if (source is not null)
                 _productionContext.AddSource(file, source.ToString());
         }
-
-        var container = AutoStubContainerEmitter.Emit(_syntaxContext, containerTypeSymbol, stubs);
-        _productionContext.AddSource(containerTypeSymbol.Name + ".AutoStubContainer.g.cs", container.ToString());
     }
 
     private (string File, string? Source) GenerateAutoStub(
@@ -60,17 +58,17 @@ internal class AutoStubFactory
         var namedTypeSymbol = typeInfo.Type as INamedTypeSymbol
             ?? throw new InvalidOperationException();
 
-        var name = namedTypeSymbol.GetStubTypeName();
-        var file = name + ".AutoStub.g.cs";
-        if (!_generatedStubs.Add(file))
+        var file = $"Nubbin.{namedTypeSymbol.GetStubTypeNameWithNamespace()}.AutoStub.g.cs";
+        if (_generatedStubs.ContainsKey(file))
             return (file, null);
+        _generatedStubs.Add(file, namedTypeSymbol);
 
         var _namespace = "Nubbin.Generated";
         if (!namedTypeSymbol.ContainingNamespace.IsGlobalNamespace) 
             _namespace += "." + namedTypeSymbol.ContainingNamespace;
         var stub = new StubDefinition
         {
-            Name = name,
+            Name = namedTypeSymbol.GetStubTypeName(),
             Accessibility = Accessibility.Internal,
             Namespace = _namespace,
             BaseType = namedTypeSymbol,
@@ -95,9 +93,29 @@ internal class AutoStubFactory
                 n is MemberAccessExpressionSyntax stx
                 && stx.Name is GenericNameSyntax name
                 && stx.Expression is IdentifierNameSyntax expr
-                && name.Identifier.Text == nameof(Stub.Auto)
+                && name.Identifier.Text == "Auto"
                 && name.TypeArgumentList.Arguments.Count == 1
                 && expr.Identifier.Text == nameof(Stub))
             .Cast<MemberAccessExpressionSyntax>();
+    }
+
+    private bool HasDiagnosticError(INamedTypeSymbol containerTypeSymbol, ClassDeclarationSyntax containingClass)
+    {
+        var res = false;
+
+        var containingNamespace = containerTypeSymbol.ContainingNamespace.ToDisplayString();
+        if (!containingNamespace.Equals("Nubbin")
+            && !containingNamespace.StartsWith("Nubbin.")
+            && !containingClass.SyntaxTree.GetCompilationUnitRoot().Usings.Any(u => u.Name?.ToString() == "Nubbin"))
+        {
+            _productionContext.ReportDiagnostic(
+                Diagnostic.Create(
+                    Diagnostics.AutoStubMissingUsingError,
+                    containingClass.Identifier.GetLocation(),
+                    containerTypeSymbol.Name));
+            res = true;
+        }
+
+        return res;
     }
 }

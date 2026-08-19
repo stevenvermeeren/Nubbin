@@ -14,33 +14,11 @@ internal static class Diagnostics
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor PartialAutoStubError = new(
+    public static readonly DiagnosticDescriptor AutoStubMissingUsingError = new(
         id: "NUBBIN002",
-        title: "Class containing auto-stubs must be partial",
-        messageFormat: "'{0}' contains auto-stubs but is not partial",
+        title: "Class containing auto-stubs must be import Nubbin namespace",
+        messageFormat: "'{0}' contains auto-stubs but does not import Nubbin namespace",
         category: "Nubbin",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-
-    public static bool CheckPartial(
-        this SourceProductionContext productionContext,
-        INamedTypeSymbol symbol,
-        Func<Location> locationGetter,
-        DiagnosticDescriptor diagnostic)
-    {
-        if (!symbol.IsPartial())
-        {
-            productionContext.ReportDiagnostic(
-                Diagnostic.Create(diagnostic, locationGetter(), symbol.Name));
-            return false;
-        }
-        return true;
-    }
-
-    private static bool IsPartial(this INamedTypeSymbol symbol)
-    {
-        return symbol.DeclaringSyntaxReferences.Any(syntax =>
-            syntax.GetSyntax() is ClassDeclarationSyntax declaration
-            && declaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)));
-    }
 }

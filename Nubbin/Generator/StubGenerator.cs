@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Nubbin.Generator.Emitting;
 
@@ -24,15 +25,36 @@ public sealed class StubGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(targets, static (productionContext, syntaxContext) =>
         {
             var target = (INamedTypeSymbol)syntaxContext.TargetSymbol;
-            if (!productionContext.CheckPartial(
-                    target, 
-                    () => GetAttributeFromClass(syntaxContext).GetLocation(),
-                    Diagnostics.PartialStubError))
+            if (!EnsurePartialClass(target, productionContext, syntaxContext))
                 return;
 
             var source = StubSourceEmitter.Emit(target);
             productionContext.AddSource(target.Name + ".Stub.g.cs", source);
         });
+    }
+
+    private static bool EnsurePartialClass(
+        INamedTypeSymbol symbol,
+        SourceProductionContext productionContext,
+        GeneratorAttributeSyntaxContext syntaxContext)
+        {
+        if (!IsPartial(symbol))
+        {
+            productionContext.ReportDiagnostic(
+                Diagnostic.Create(
+                    Diagnostics.PartialStubError,
+                    GetAttributeFromClass(syntaxContext).GetLocation(),
+                    symbol.Name));
+            return false;
+        }
+        return true;
+    }
+
+    private static bool IsPartial(INamedTypeSymbol symbol)
+    {
+        return symbol.DeclaringSyntaxReferences.Any(syntax =>
+            syntax.GetSyntax() is ClassDeclarationSyntax declaration
+            && declaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)));
     }
 
     private static AttributeSyntax GetAttributeFromClass(GeneratorAttributeSyntaxContext context)

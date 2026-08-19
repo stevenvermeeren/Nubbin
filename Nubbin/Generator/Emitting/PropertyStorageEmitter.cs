@@ -27,11 +27,11 @@ internal static class PropertyStorageEmitter
                 {
                     source
                         .Append($"internal static {qualifiedPropertiesTypeName}")
-                        .Append($" GetPropertyHelper(this {typeName} owner)")
+                        .AppendLine($" GetPropertyHelper(this {typeName} owner)")
                         .Indent();
                     source
                         .Append($"=> global::Nubbin.Internal.StubPropertyStorage")
-                        .Append($"<{typeName}, {qualifiedPropertiesTypeName}>.Get(owner);")
+                        .AppendLine($"<{typeName}, {qualifiedPropertiesTypeName}>.Get(owner);")
                         .Pop();
                 });
         });

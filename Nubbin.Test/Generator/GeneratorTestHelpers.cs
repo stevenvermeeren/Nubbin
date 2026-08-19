@@ -6,6 +6,9 @@ namespace Nubbin.Test.Generator;
 internal static class GeneratorTestHelpers
 {
     public static Compilation CreateCompilation(string source, NullableContextOptions nullableContext = NullableContextOptions.Enable)
+        => CreateCompilation([source], nullableContext);
+
+    public static Compilation CreateCompilation(string[] sources, NullableContextOptions nullableContext = NullableContextOptions.Enable)
     {
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
             .Split(Path.PathSeparator)
@@ -18,7 +21,7 @@ internal static class GeneratorTestHelpers
 
         return CSharpCompilation.Create(
             assemblyName: "GeneratorTestAssembly",
-            syntaxTrees: [CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest))],
+            syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s, new CSharpParseOptions(LanguageVersion.Latest))),
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: nullableContext));
     }

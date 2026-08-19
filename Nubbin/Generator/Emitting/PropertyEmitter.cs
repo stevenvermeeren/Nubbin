@@ -29,7 +29,7 @@ internal static class PropertyEmitter
                     .Append(property.Name)
                     .AppendLine(" = value;");
             }
-            source.AppendLine("}");
+            source.Pop().AppendLine("}");
         }
         else
         {
