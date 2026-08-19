@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.6.0...Nubbin-v0.6.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* Adjust file naming ([dfb6d26](https://github.com/stevenvermeeren/Nubbin/commit/dfb6d26e37b904e9b1e003e8eb471534d3c84151))
+* Adjust how autostubs are retrieved ([7a9ca12](https://github.com/stevenvermeeren/Nubbin/commit/7a9ca12a20f7baea293721dfa3666aba418b633c))
+* Distinguish generated explicit stubs by namespace ([7c9ed9e](https://github.com/stevenvermeeren/Nubbin/commit/7c9ed9ea73a106ad14319fcde062131f015da93a))
+
 ## [0.6.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.5.1...Nubbin-v0.6.0) (2026-08-18)
 
 
