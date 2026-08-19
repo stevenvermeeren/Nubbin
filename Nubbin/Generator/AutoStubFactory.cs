@@ -58,7 +58,7 @@ internal class AutoStubFactory
         var namedTypeSymbol = typeInfo.Type as INamedTypeSymbol
             ?? throw new InvalidOperationException();
 
-        var file = $"Nubbin.{namedTypeSymbol.GetStubTypeNameWithNamespace()}.AutoStub.g.cs";
+        var file = $"{namedTypeSymbol.GetStubTypeNameWithNamespace()}.AutoStub.g.cs";
         if (_generatedStubs.ContainsKey(file))
             return (file, null);
         _generatedStubs.Add(file, namedTypeSymbol);

@@ -1,6 +1,6 @@
-using Nubbin.Test.UsageTests.Bases;
+using Nubbin.UsageTests.Bases;
 
-namespace Nubbin.Test.UsageTests;
+namespace Nubbin.UsageTests;
 
 [Stub]
 public partial class HybridStub : HybridBase, IHybridSample

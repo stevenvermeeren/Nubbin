@@ -1,4 +1,4 @@
-namespace Nubbin.Test.UsageTests.Bases;
+namespace Nubbin.UsageTests.Bases;
 
 public interface IParameterSample
 {

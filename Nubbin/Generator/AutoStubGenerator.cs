@@ -36,7 +36,7 @@ public sealed class AutoStubGenerator : IIncrementalGenerator
             }
 
             var extensions = AutoStubExtensionsEmitter.Emit(generatedStubs.Values);
-            productionContext.AddSource($"Nubbin.AutoStubExtensions.g.cs", extensions.ToString());
+            productionContext.AddSource($"AutoStubExtensions.g.cs", extensions.ToString());
         });
     }
 }

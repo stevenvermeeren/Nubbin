@@ -1,4 +1,4 @@
-namespace Nubbin.Test.UsageTests;
+namespace Nubbin.UsageTest;
 
 public partial class NestedStubTests
 {
