@@ -16,6 +16,9 @@ internal static class AutoStubExtensionsEmitter
                 builder.AppendLine("extension(global::Nubbin.Stub)");
                 builder.AppendLine("{").Indent();
                 
+                builder.AppendLine("/// <summary>");
+                builder.AppendLine("/// Method to retrieve auto-implemented stub instances.");
+                builder.AppendLine("/// </summary>");
                 builder
                     .AppendLine("public static T Auto<T>()")
                     .AppendLine("{")
@@ -42,7 +45,7 @@ internal static class AutoStubExtensionsEmitter
         builder
             .AppendLine($"if (typeof(T) == typeof({stubTypeSymbol.GetFullyQualifiedName()}))")
             .Indent()
-            .AppendLine($"return (T)(object)new global::Nubbin.Generated.{stubTypeSymbol.GetStubTypeNameWithNamespace()}();")
+            .AppendLine($"return (T)(object)global::Nubbin.Generated.{stubTypeSymbol.GetStubTypeNameWithNamespace()}.Instance;")
             .Pop();
     }
 

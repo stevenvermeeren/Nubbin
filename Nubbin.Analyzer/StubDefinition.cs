@@ -14,6 +14,7 @@ internal class StubDefinition
     public INamedTypeSymbol? BaseType { get; set; }
     public INamedTypeSymbol? ContainingType { get; set; }
     public ImmutableArray<INamedTypeSymbol> AllInterfaces { get; set; } = [];
+    public bool UseSingletonInstance { get; set; }
 
     public static StubDefinition FromINamedTypeSymbol(INamedTypeSymbol symbol)
     {

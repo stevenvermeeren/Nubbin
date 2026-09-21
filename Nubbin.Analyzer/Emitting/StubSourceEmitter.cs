@@ -28,6 +28,13 @@ internal static class StubSourceEmitter
                     },
                     () =>
                     {
+                        if (type.UseSingletonInstance)
+                            builder.Append("public static ")
+                            .Append(type.Name)
+                            .Append(" Instance = new ")
+                            .Append(type.Name)
+                            .AppendLine("();");
+
                         foreach (var method in new MethodDiscoverer().GetSymbolsMissingImplementation(type))
                         {
                             builder.AppendMethod(method, type);

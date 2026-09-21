@@ -36,6 +36,6 @@ public class AutoStubExtensionsEmitterTests
 
         Assert.Contains("public static T Auto<T>()", generatedSource);
         Assert.Contains("typeof(T) == typeof(global::IComponent)", generatedSource);
-        Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
+        Assert.Contains("global::Nubbin.Generated.IComponentStub.Instance", generatedSource);
     }
 }
