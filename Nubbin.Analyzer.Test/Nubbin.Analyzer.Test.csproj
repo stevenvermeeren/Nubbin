@@ -6,30 +6,24 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Generated/**/*.cs" />
-  </ItemGroup>
-  <Target Name="CleanGeneratedFiles" BeforeTargets="BeforeClean">
-    <RemoveDir Directories="Generated" />
-  </Target>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Nubbin/Nubbin.csproj" />
-    <ProjectReference Include="../Nubbin.Analyzer/Nubbin.Analyzer.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="true" />
+    <ProjectReference Include="../Nubbin/Nubbin.csproj" /> 
+    <ProjectReference Include="../Nubbin.Analyzer/Nubbin.Analyzer.csproj" /> 
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="coverlet.msbuild" Version="10.0.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />

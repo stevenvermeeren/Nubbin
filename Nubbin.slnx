@@ -1,5 +1,6 @@
 <Solution>
-  <Project Path="./Nubbin/Nubbin.csproj" />
-  <Project Path="./Nubbin.Test/Nubbin.Test.csproj" />
-  <Project Path="./Nubbin.UsageTest/Nubbin.UsageTest.csproj" />
+  <Project Path="Nubbin.UsageTest/Nubbin.UsageTest.csproj" />
+  <Project Path="Nubbin.Analyzer.Test/Nubbin.Analyzer.Test.csproj" />
+  <Project Path="Nubbin.Analyzer/Nubbin.Analyzer.csproj" />
+  <Project Path="Nubbin/Nubbin.csproj" />
 </Solution>

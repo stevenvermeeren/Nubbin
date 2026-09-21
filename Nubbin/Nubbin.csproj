@@ -16,12 +16,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
-
-  <ItemGroup>
-    <InternalsVisibleTo Include="Nubbin.Test" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp"
@@ -31,8 +26,17 @@
     <None Include="../LICENSE" Pack="true" PackagePath="LICENSE" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+  <Target Name="BuildAndPackAnalyzer" BeforeTargets="_GetPackageFiles">
+    <!-- pack the analyzer assembly produced by the Nubbin.Analyzer project into the analyzers folder -->
+    <MSBuild Projects="../Nubbin.Analyzer/Nubbin.Analyzer.csproj"
+            Targets="Build"
+            Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    <ItemGroup>
+      <None Include="../Nubbin.Analyzer/bin/$(Configuration)/$(TargetFramework)/Nubbin.Analyzer.dll"
+            Pack="true"
+            PackagePath="analyzers/dotnet/cs/"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>
