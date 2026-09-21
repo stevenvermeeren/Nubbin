@@ -39,7 +39,6 @@ jobs:
           base_version="$(sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' Nubbin/Nubbin.csproj | head -n 1)"
           dotnet pack Nubbin/Nubbin.csproj \
             --configuration Release \
-            --no-build \
             --no-restore \
             -p:PackageVersion="${base_version}-rc.${GITHUB_RUN_NUMBER}" \
             --output ./artifacts/release-candidate
