@@ -41,9 +41,9 @@ public class AutoStubGeneratorTests
             driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
 
         Assert.Contains("typeof(T) == typeof(global::IComponent)", generatedSource);
-        Assert.Contains("global::Nubbin.Generated.IComponentStub.Instance", generatedSource);
         Assert.Contains("typeof(T) == typeof(global::AbstractComponent)", generatedSource);
-        Assert.Contains("global::Nubbin.Generated.AbstractComponentStub.Instance", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.AbstractComponentStub()", generatedSource);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class AutoStubGeneratorTests
             driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
 
         Assert.Contains("typeof(T) == typeof(global::Consumer.IComponent)", generatedSource);
-        Assert.Contains("global::Nubbin.Generated.Consumer_IComponentStub.Instance", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.Consumer_IComponentStub()", generatedSource);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class AutoStubGeneratorTests
             driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
 
         Assert.Contains("typeof(T) == typeof(global::First.IComponent)", generatedSource);
-        Assert.Contains("global::Nubbin.Generated.First.IComponentStub.Instance", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.First.IComponentStub()", generatedSource);
     }
 
     [Fact]

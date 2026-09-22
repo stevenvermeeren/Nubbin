@@ -73,8 +73,7 @@ internal class AutoStubFactory
             Namespace = _namespace,
             BaseType = namedTypeSymbol,
             AllInterfaces = [namedTypeSymbol, ..namedTypeSymbol.AllInterfaces],
-            ContainingAssembly = containerTypeSymbol.ContainingAssembly,
-            UseSingletonInstance = true
+            ContainingAssembly = containerTypeSymbol.ContainingAssembly
         };
 
         return (file, StubSourceEmitter.Emit(stub));
