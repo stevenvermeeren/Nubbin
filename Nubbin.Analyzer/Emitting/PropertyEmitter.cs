@@ -18,14 +18,18 @@ internal static class PropertyEmitter
             if (property.HasGetter())
             {
                 source
-                    .Append("get => global::Nubbin.Stubs.GetPropertyHelper(this).")
+                    .Append("get => ")
+                    .Append(PropertyStorageEmitter.PropertyContainerFieldName)
+                    .Append(".")
                     .Append(property.Name)
                     .AppendLine(";");
             }
             if (property.HasSetter())
             {
                 source
-                    .Append("set => global::Nubbin.Stubs.GetPropertyHelper(this).")
+                    .Append("set => ")
+                    .Append(PropertyStorageEmitter.PropertyContainerFieldName)
+                    .Append(".")
                     .Append(property.Name)
                     .AppendLine(" = value;");
             }

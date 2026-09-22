@@ -4,70 +4,81 @@ namespace Nubbin.Analyzer.Emitting;
 
 internal static class PropertyStorageEmitter
 {
+    public const string PropertyContainerFieldName = "_nubbinPropertyContainer";
+
     public static void AppendPropertyStorage(
-        this IndentedStringBuilder source,
+        this IndentedStringBuilder builder,
         StubDefinition type,
         IReadOnlyCollection<IPropertySymbol> properties)
     {
-        var typeName = type.LeafType?.GetFullyQualifiedName();
-        if (typeName is null)
-            throw new NotSupportedException("PropertyStorage only applicable to explicit stubs");
-        
-        var qualifiedPropertiesTypeName = GetQualifiedPropertyStorageTypeName(type);
-
-        source.WithNamespace("Nubbin", () =>
-        {
-            source.WithClass(
-                new ClassEmitter.Definition(Accessibility.Internal, "Stubs")
+        builder
+            .Append("internal readonly ")
+            .Append(GetPropertyStorageTypeName(type))
+            .Append(" ")
+            .Append(PropertyContainerFieldName)
+            .AppendLine(" = new();");
+        builder.WithClass(
+            new ClassEmitter.Definition(Accessibility.Internal, GetPropertyStorageTypeName(type))
+            {
+                IsSealed = true
+            },
+            () =>
+            {
+                foreach (var property in properties)
                 {
-                    IsPartial = true,
-                    IsStatic = true
-                },
-                () =>
-                {
-                    source
-                        .Append($"internal static {qualifiedPropertiesTypeName}")
-                        .AppendLine($" GetPropertyHelper(this {typeName} owner)")
-                        .Indent();
-                    source
-                        .Append($"=> global::Nubbin.Internal.StubPropertyStorage")
-                        .AppendLine($"<{typeName}, {qualifiedPropertiesTypeName}>.Get(owner);")
-                        .Pop();
-                });
-        });
-        source.WithNamespace(GetPropertyHelperNamespace(type), () =>
-        {
-            source.WithClass(
-                new ClassEmitter.Definition(Accessibility.Internal, GetPropertyStorageTypeName(type))
-                {
-                    IsSealed = true
-                },
-                () =>
-                {
-                    foreach (var property in properties)
-                    {
-                        var propType = property.Type.ToQualifiedString();                        
-                        source
-                            .Append($"public {propType} {property.Name}")
-                            .AppendAutoPropertyBody(property);
-                    }
-                });
-        });
+                    var propType = property.Type.ToQualifiedString();                        
+                    builder
+                        .Append($"public {propType} {property.Name}")
+                        .AppendAutoPropertyBody(property);
+                }
+            });
     }
 
-    private static string GetQualifiedPropertyStorageTypeName(StubDefinition type)
+    public static void AppendPropertyStorageLookup(
+        this IndentedStringBuilder builder,
+        StubDefinition type)
     {
-        return "global::" + GetPropertyHelperNamespace(type) + "." + GetPropertyStorageTypeName(type);
+        builder.WithClass(
+            new ClassEmitter.Definition(Accessibility.Internal, "Stubs")
+            {
+                IsPartial = true,
+                IsStatic = true
+            },
+            () =>
+            {
+                var typeName = (type.LeafType ?? type.BaseType)?.GetFullyQualifiedName()
+                    ?? throw new InvalidOperationException("Unexpected property container for non-concrete type.");
+                builder
+                    .AppendLine("/// <summary>")
+                    .AppendLine("/// Gets the property storage associated with a stub instance.")
+                    .AppendLine("/// </summary>")
+                    .AppendLine("/// <param name=\"owner\">The stub instance that owns the properties.</param>")
+                    .AppendLine("/// <returns>The typed property storage for <paramref name=\"owner\"/>.</returns>");
+                builder
+                    .Append("internal static ")
+                    .Append(typeName)
+                    .Append(".")
+                    .Append(GetPropertyStorageTypeName(type))
+                    .Append(" GetPropertyHelper(this ")
+                    .Append(typeName)
+                    .AppendLine(" owner)")
+                    .Indent();
+                builder
+                    .Append("=> (owner as ")
+                    .Append(type.Name)
+                    .Append(")?.")
+                    .Append(PropertyContainerFieldName)
+                    .Append(" ?? new ")
+                    .Append(typeName)
+                    .Append(".")
+                    .Append(GetPropertyStorageTypeName(type))
+                    .Append("();")
+                    .Pop();
+            });
     }
 
     private static string GetPropertyStorageTypeName(StubDefinition type)
     {
-        return type.Name + "PropertyHelper";
-    }
-
-    private static string GetPropertyHelperNamespace(StubDefinition type)
-    {
-        var namespaceName = type.Namespace;
-        return string.IsNullOrEmpty(namespaceName) ? "Nubbin" : namespaceName + ".Nubbin";
+        return type.Name + "PropertyContainer";
     }
 }

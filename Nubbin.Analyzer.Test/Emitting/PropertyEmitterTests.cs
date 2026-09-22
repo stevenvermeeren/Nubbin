@@ -20,7 +20,7 @@ public class PropertyEmitterTests
         var result = builder.ToString();
 
         Assert.Contains("public override string Name", result);
-        Assert.Contains("get => global::Nubbin.Stubs.GetPropertyHelper(this).Name;", result);
+        Assert.Contains("get => _nubbinPropertyContainer.Name;", result);
     }
 
     [Fact]
@@ -52,8 +52,8 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("set => global::Nubbin.Stubs.GetPropertyHelper(this).Name = value;", result);
-        Assert.DoesNotContain("get => global::Nubbin.Stubs.GetPropertyHelper(this).Name;", result);
+        Assert.Contains("set => _nubbinPropertyContainer.Name = value;", result);
+        Assert.DoesNotContain("get => _nubbinPropertyContainer.Name;", result);
     }
 
     [Fact]
@@ -70,8 +70,8 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("get => global::Nubbin.Stubs.GetPropertyHelper(this).Name;", result);
-        Assert.Contains("set => global::Nubbin.Stubs.GetPropertyHelper(this).Name = value;", result);
+        Assert.Contains("get => _nubbinPropertyContainer.Name;", result);
+        Assert.Contains("set => _nubbinPropertyContainer.Name = value;", result);
     }
 
     [Fact]

@@ -42,14 +42,20 @@ internal static class StubSourceEmitter
                         {
                             builder.AppendProperty(type, property, storageProperties.Contains(property, SymbolEqualityComparer.Default));
                         }
+
+                        if (storageProperties.Length > 0)
+                        {
+                            builder.AppendLine();
+                            builder.AppendPropertyStorage(type, storageProperties);
+                        }
                     });
             });
-        });
 
-        if (storageProperties.Length > 0)
-        {
-            builder.AppendPropertyStorage(type, storageProperties);
-        }
+            if (storageProperties.Length > 0)
+            {
+                builder.AppendPropertyStorageLookup(type);
+            }
+        });
 
         return builder.ToString();
     }

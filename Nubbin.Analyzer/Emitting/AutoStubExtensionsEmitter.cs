@@ -43,9 +43,14 @@ internal static class AutoStubExtensionsEmitter
         INamedTypeSymbol stubTypeSymbol)
     {
         builder
-            .AppendLine($"if (typeof(T) == typeof({stubTypeSymbol.GetFullyQualifiedName()}))")
-            .Indent()
-            .AppendLine($"return (T)(object)new global::Nubbin.Generated.{stubTypeSymbol.GetStubTypeNameWithNamespace()}();")
+            .Append("if (typeof(T) == typeof(")
+            .Append(stubTypeSymbol.GetFullyQualifiedName())
+            .AppendLine("))")
+            .Indent();
+        builder
+            .Append("return (T)(object)new global::Nubbin.Generated.")
+            .Append(stubTypeSymbol.GetStubTypeNameWithNamespace())
+            .AppendLine("();")
             .Pop();
     }
 

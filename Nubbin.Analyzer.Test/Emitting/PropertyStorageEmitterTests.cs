@@ -21,9 +21,24 @@ public class PropertyStorageEmitterTests
 
         var result = builder.ToString();
 
+        Assert.Contains("internal sealed class SubjectPropertyContainer", result);
+        Assert.Contains("public string? Name { get; set; } = default;", result);
+    }
+
+    [Fact]
+    public void AppendPropertyStorageLookup_GeneratesLookup()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public class Subject { public string? Name { get; set; } }"
+        );
+
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.Subject"));
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendPropertyStorageLookup(type);
+
+        var result = builder.ToString();
+
         Assert.Contains("GetPropertyHelper(this global::Example.Subject owner)", result);
-        Assert.Contains("namespace Example.Nubbin", result);
-        Assert.Contains("public string? Name", result);
-        Assert.Contains("{ get; set; } = default;", result);
     }
 }
