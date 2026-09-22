@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.6.1...Nubbin-v0.7.0) (2026-09-22)
+
+
+### Features
+
+* rework stub property storage ([a0425e5](https://github.com/stevenvermeeren/Nubbin/commit/a0425e5b2f0e23959e81dedd4303e03bd393d338))
+* split analyzer to separate project ([95cf28f](https://github.com/stevenvermeeren/Nubbin/commit/95cf28f5aa84d22c4bb6d5e029a5c01973f54964))
+* use singleton instance for autostubs ([ff2bdd4](https://github.com/stevenvermeeren/Nubbin/commit/ff2bdd42be58a90b4e96ae68bd08339d5dd6c690))
+
 ## [0.6.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.6.0...Nubbin-v0.6.1) (2026-08-19)
 
 
