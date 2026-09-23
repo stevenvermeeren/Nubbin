@@ -22,6 +22,8 @@ public class StubDefaultsTests
     [InlineData("System.Collections.Generic.IEnumerable<string>", "global::System.Array.Empty<string>()")]
     [InlineData("System.Collections.Generic.ICollection<int>", "new global::System.Collections.Generic.List<int>()")]
     [InlineData("System.Collections.Generic.IDictionary<string, int>", "new global::System.Collections.Generic.Dictionary<string, int>()")]
+    [InlineData("System.Action", "() => { }")]
+    [InlineData("delegate bool Test(); Test", "() => default")]
     [InlineData("int", "default")]
     public void GetReturnExpressionUsesCompatibleDefaults(string typeName, string expectedExpression)
     {

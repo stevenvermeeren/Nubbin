@@ -22,10 +22,10 @@ internal static class StubDefaults
 
     public static string GetReturnExpression(this ITypeSymbol returnType)
     {
-        if (returnType is INamedTypeSymbol collectionType
-            && GetCollectionExpression(collectionType) is { } collectionExpression)
+        if (returnType is INamedTypeSymbol namedType
+            && (GetCollectionExpression(namedType) ?? GetDelegateExpression(namedType)) is string expression)
         {
-            return collectionExpression;
+            return expression;
         }
 
         if (returnType is INamedTypeSymbol constructibleType
@@ -50,7 +50,9 @@ internal static class StubDefaults
             return true;
         }
 
-        return !HasPublicParameterlessConstructor(namedType) && GetCollectionExpression(namedType) is null;
+        return !HasPublicParameterlessConstructor(namedType)
+            && GetCollectionExpression(namedType) is null
+            && GetDelegateExpression(namedType) is null;
     }
 
     private static bool HasPublicParameterlessConstructor(INamedTypeSymbol type)
@@ -59,6 +61,24 @@ internal static class StubDefaults
             type.InstanceConstructors.Any(constructor =>
                 constructor.DeclaredAccessibility == Accessibility.Public 
                 && constructor.Parameters.Length == 0);
+    }
+
+    private static string? GetDelegateExpression(INamedTypeSymbol type)
+    {
+        if (type.DelegateInvokeMethod is not IMethodSymbol delegateInvoke)
+            return null;
+
+        var lhs = "(" + string.Join(", ", Enumerable.Repeat("_", delegateInvoke.Parameters.Length)) +")";
+        
+        string rhs;
+        if (delegateInvoke.ReturnsVoid)
+            rhs = "{ }";
+        else if (RequiresNotImplemented(delegateInvoke.ReturnType))
+            rhs = "throw new global::System.NotImplementedException()";
+        else
+            rhs = GetReturnExpression(delegateInvoke.ReturnType);
+            
+        return lhs + " => " + rhs;
     }
 
     private static string? GetCollectionExpression(INamedTypeSymbol type)
