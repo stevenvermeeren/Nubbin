@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.7.0...Nubbin-v0.8.0) (2026-09-23)
+
+
+### Features
+
+* add default values for delegate types ([5cad29b](https://github.com/stevenvermeeren/Nubbin/commit/5cad29b3f9e5bd636a4d6cfe5e136251fabbd9a5))
+
 ## [0.7.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.6.1...Nubbin-v0.7.0) (2026-09-22)
 
 
