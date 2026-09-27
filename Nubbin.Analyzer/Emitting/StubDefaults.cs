@@ -22,6 +22,12 @@ internal static class StubDefaults
 
     public static string GetReturnExpression(this ITypeSymbol returnType)
     {
+        if (returnType is ITypeParameterSymbol typeParam)
+        {
+            if (typeParam.HasConstructorConstraint)
+                return "new " + typeParam.Name + "()";
+        }
+
         if (returnType is INamedTypeSymbol namedType
             && (GetCollectionExpression(namedType) ?? GetDelegateExpression(namedType)) is string expression)
         {
@@ -40,6 +46,15 @@ internal static class StubDefaults
 
     public static bool RequiresNotImplemented(this ITypeSymbol returnType)
     {
+        if (returnType is ITypeParameterSymbol typeParam)
+        {
+            if (typeParam.HasConstructorConstraint
+                || typeParam.HasValueTypeConstraint
+                || returnType.NullableAnnotation != NullableAnnotation.NotAnnotated)
+                return false;
+            return true;
+        }
+
         if (!returnType.IsReferenceType || returnType.NullableAnnotation != NullableAnnotation.NotAnnotated)
         {
             return false;

@@ -89,4 +89,20 @@ public class PropertyEmitterTests
 
         Assert.Contains("get => throw new global::System.NotImplementedException();", result);
     }
+
+    [Fact]
+    public void AppendAutoPropertyBody_GeneratesNotImplementedForNonConstructibleGenericType()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public class Subject<T> { public T Name { get; set; } }"
+        );
+        var property = GeneratorTestHelpers.GetType(compilation, "Example.Subject`1").GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendAutoPropertyBody(property);
+
+        var result = builder.ToString();
+
+        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+    }
 }

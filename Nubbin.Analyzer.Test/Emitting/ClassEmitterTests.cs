@@ -36,4 +36,25 @@ public class ClassEmitterTests
 
         Assert.Contains("public class Container : global::IComponent", result);
     }
+
+    [Fact]
+    public void WithClassIncludesTypeArgumentsAndConstraints()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation("public interface IComponent<T> where T : class { int Value { get; set; } }");
+        var baseType = compilation.GetTypeByMetadataName("IComponent`1")!;
+        var builder = new IndentedStringBuilder();
+
+        builder.WithClass(
+            new ClassEmitter.Definition(Accessibility.Public, "Container")
+            { 
+                BaseTypes = [baseType], 
+                TypeParameters = baseType.TypeParameters
+            },
+            () => builder.AppendLine("public void Example() { }"));
+
+        var result = builder.ToString();
+
+        Assert.Contains("public class Container<T> : global::IComponent", result);
+        Assert.Contains("where T : class", result);
+    }
 }

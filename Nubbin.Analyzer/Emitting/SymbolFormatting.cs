@@ -54,6 +54,44 @@ internal static class SymbolFormatting
         return result.ToString();
     }
 
+    public static string GetFullyQualifiedNameWithTypeParams(
+        this INamedTypeSymbol symbol,
+        bool includeGlobalPrefix = true,
+        char parentTypeSeparator = '.')
+    {
+        return symbol.GetFullyQualifiedName(includeGlobalPrefix, parentTypeSeparator)
+            + symbol.FormatTypeParams();
+    }
+
+    public static string FormatTypeParams(this INamedTypeSymbol? symbol)
+    {
+        if (symbol is null || !symbol.TypeArguments.Any())
+            return string.Empty;
+        return "<" + string.Join(", ", symbol.TypeArguments.Select(p => p.Name)) + ">";
+    }
+
+    public static string FormatConstraints(this ITypeParameterSymbol symbol)
+    {
+        var builder = new StringBuilder("where ");
+        builder.Append(symbol.Name + " : ");
+        var baseLenght = builder.Length;
+
+        foreach (var type in symbol.ConstraintTypes.OfType<INamedTypeSymbol>())
+            builder.Append(type.Name).Append(", ");
+        if (symbol.HasReferenceTypeConstraint)
+            builder.Append("class, ");
+        if (symbol.HasNotNullConstraint)
+            builder.Append("notnull, ");
+        if (symbol.HasValueTypeConstraint)
+            builder.Append("struct, ");
+        if (symbol.HasConstructorConstraint)
+            builder.Append("new(), ");
+        var res = builder.ToString();
+        if (res.Length > baseLenght)
+            return res.Substring(0, res.Length - 2);
+        return string.Empty;
+    }
+
     private static string WithParentTypes(INamedTypeSymbol type, char parentTypeSeparator)
     {
         if (type.ContainingType is INamedTypeSymbol parent)

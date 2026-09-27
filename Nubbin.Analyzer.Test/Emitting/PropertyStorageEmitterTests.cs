@@ -41,4 +41,21 @@ public class PropertyStorageEmitterTests
 
         Assert.Contains("GetPropertyHelper(this global::Example.Subject owner)", result);
     }
+
+    [Fact]
+    public void AppendPropertyStorageLookup_GeneratesLookupForGenericType()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public class Subject<T> { public string? Name { get; set; } }"
+        );
+
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.Subject`1"));
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendPropertyStorageLookup(type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("GetPropertyHelper<T>(this global::Example.Subject<T> owner)", result);
+    }
 }

@@ -44,7 +44,7 @@ internal static class AutoStubExtensionsEmitter
     {
         builder
             .Append("if (typeof(T) == typeof(")
-            .Append(stubTypeSymbol.GetFullyQualifiedName())
+            .Append(stubTypeSymbol.GetFullyQualifiedNameWithTypeParams())
             .AppendLine("))")
             .Indent();
         builder

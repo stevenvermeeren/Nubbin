@@ -10,7 +10,7 @@ internal abstract class AutoStubSource
         Symbol = symbol;
     }
 
-    public string GetFullyQualifiedName() => Symbol.GetFullyQualifiedName();
+    public string GetFullyQualifiedNameWithTypeParams() => Symbol.GetFullyQualifiedNameWithTypeParams();
 
     public abstract string GetInstantiationExpression();
 }

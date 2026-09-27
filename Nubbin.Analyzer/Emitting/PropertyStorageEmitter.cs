@@ -46,7 +46,8 @@ internal static class PropertyStorageEmitter
             },
             () =>
             {
-                var typeName = (type.LeafType ?? type.BaseType)?.GetFullyQualifiedName()
+                var referenceType = type.LeafType ?? type.BaseType;
+                var typeName = referenceType?.GetFullyQualifiedNameWithTypeParams()
                     ?? throw new InvalidOperationException("Unexpected property container for non-concrete type.");
                 builder
                     .AppendLine("/// <summary>")
@@ -59,13 +60,17 @@ internal static class PropertyStorageEmitter
                     .Append(typeName)
                     .Append(".")
                     .Append(GetPropertyStorageTypeName(type))
-                    .Append(" GetPropertyHelper(this ")
+                    .Append(" GetPropertyHelper")
+                    .Append(referenceType.FormatTypeParams())
+                    .Append("(this ")
                     .Append(typeName)
                     .AppendLine(" owner)")
                     .Indent();
+                foreach (var typeParam in referenceType.TypeParameters)
+                    builder.Indent().AppendLine(typeParam.FormatConstraints()).Pop();
                 builder
                     .Append("=> (owner as ")
-                    .Append(type.Name)
+                    .Append(typeName)
                     .Append(")?.")
                     .Append(PropertyContainerFieldName)
                     .Append(" ?? new ")

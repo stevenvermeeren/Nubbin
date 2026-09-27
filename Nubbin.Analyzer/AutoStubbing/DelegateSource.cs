@@ -9,7 +9,7 @@ internal class DelegateSource(INamedTypeSymbol symbol) : AutoStubSource(symbol)
         var builder = new StringBuilder();
         builder
             .Append("new ")
-            .Append(Symbol.GetFullyQualifiedName())
+            .Append(Symbol.GetFullyQualifiedNameWithTypeParams())
             .Append("(")
             .Append(Symbol.GetDelegateExpression())
             .Append(")");

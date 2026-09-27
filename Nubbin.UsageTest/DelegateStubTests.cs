@@ -87,4 +87,13 @@ public class DelegateStubTests
         var res = stub("input", 0);
         Assert.Equal(42, res.Value);
     }
+
+    [Fact]
+    public void CanAutostubGenericDelegate()
+    {
+        var stub = Stub.Auto<Func<int>>();
+
+        var res = stub();
+        Assert.Equal(0, res);
+    }
 }

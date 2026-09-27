@@ -24,6 +24,7 @@ internal static class StubSourceEmitter
                     new ClassEmitter.Definition(type)
                     {
                         IsPartial = type.LeafType is not null,
+                        TypeParameters = type.LeafType?.TypeParameters ?? [],
                         BaseTypes = type.LeafType is not null || type.BaseType is null ? [] : [type.BaseType]
                     },
                     () =>
