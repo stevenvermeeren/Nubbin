@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Nubbin.Analyzer.AutoStubbing;
 using Nubbin.Analyzer.Emitting;
 
 namespace Nubbin.Analyzer;
@@ -27,7 +28,7 @@ public sealed class AutoStubGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(targets, (productionContext, syntaxContexts) =>
         {
-            var generatedStubs = new Dictionary<string, INamedTypeSymbol>();
+            var generatedStubs = new Dictionary<string, AutoStubSource>();
             foreach (var syntaxContext in syntaxContexts)
             {
                 var unit = (CompilationUnitSyntax)syntaxContext.Node;

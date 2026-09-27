@@ -21,6 +21,7 @@ public class AutoStubExtensionsEmitterTests
                 public void Test()
                 {
                     var component = Stub.Auto<IComponent>();
+                    var component = Stub.Auto<System.Action>();
                 }
             }
             """;
@@ -37,5 +38,7 @@ public class AutoStubExtensionsEmitterTests
         Assert.Contains("public static T Auto<T>()", generatedSource);
         Assert.Contains("typeof(T) == typeof(global::IComponent)", generatedSource);
         Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
+        Assert.Contains("typeof(T) == typeof(global::System.Action)", generatedSource);
+        Assert.Contains("new global::System.Action(() => { })", generatedSource);
     }
 }

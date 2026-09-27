@@ -3,18 +3,18 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Nubbin.Analyzer.Emitting;
 
-namespace Nubbin.Analyzer;
+namespace Nubbin.Analyzer.AutoStubbing;
 
 internal class AutoStubFactory
 {
-    private readonly Dictionary<string, INamedTypeSymbol> _generatedStubs;
+    private readonly Dictionary<string, AutoStubSource> _generatedStubs;
     private readonly SourceProductionContext _productionContext;
     private readonly GeneratorSyntaxContext _syntaxContext;
 
     public AutoStubFactory(
         SourceProductionContext productionContext,
         GeneratorSyntaxContext syntaxContext,
-        Dictionary<string, INamedTypeSymbol> generatedStubs)
+        Dictionary<string, AutoStubSource> generatedStubs)
     {
         _productionContext = productionContext;
         _syntaxContext = syntaxContext;
@@ -61,7 +61,13 @@ internal class AutoStubFactory
         var file = $"{namedTypeSymbol.GetStubTypeNameWithNamespace()}.AutoStub.g.cs";
         if (_generatedStubs.ContainsKey(file))
             return (file, null);
-        _generatedStubs.Add(file, namedTypeSymbol);
+
+        if (namedTypeSymbol.DelegateInvokeMethod is not null)
+        {
+            _generatedStubs.Add(file, new DelegateSource(namedTypeSymbol));
+            return (file, null);
+        }
+        _generatedStubs.Add(file, new TypeSymbolSource(namedTypeSymbol));
 
         var _namespace = "Nubbin.Generated";
         if (!namedTypeSymbol.ContainingNamespace.IsGlobalNamespace) 

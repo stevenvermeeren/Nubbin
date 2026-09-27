@@ -27,7 +27,7 @@ public class AutoStubGeneratorTests
                 {
                     var interfaceStub = Stub.Auto<IComponent>();
                     var abstractStub = Stub.Auto<AbstractComponent>();
-                    _ = interfaceStub.Value + abstractStub.Value;
+                    var delegateStub = Stub.Auto<System.Action>();
                 }
             }
             """;
@@ -41,9 +41,11 @@ public class AutoStubGeneratorTests
             driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
 
         Assert.Contains("typeof(T) == typeof(global::IComponent)", generatedSource);
-        Assert.Contains("typeof(T) == typeof(global::AbstractComponent)", generatedSource);
         Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
+        Assert.Contains("typeof(T) == typeof(global::AbstractComponent)", generatedSource);
         Assert.Contains("new global::Nubbin.Generated.AbstractComponentStub()", generatedSource);
+        Assert.Contains("typeof(T) == typeof(global::System.Action)", generatedSource);
+        Assert.Contains("new global::System.Action(() => { })", generatedSource);
     }
 
     [Fact]

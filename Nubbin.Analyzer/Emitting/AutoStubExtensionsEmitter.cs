@@ -5,7 +5,7 @@ namespace Nubbin.Analyzer.Emitting;
 
 internal static class AutoStubExtensionsEmitter
 {
-    public static string Emit(IEnumerable<INamedTypeSymbol> stubs)
+    public static string Emit(IEnumerable<AutoStubSource> stubs)
     {
         var builder = new IndentedStringBuilder();
         builder.WithNamespace("Nubbin", () =>
@@ -40,7 +40,7 @@ internal static class AutoStubExtensionsEmitter
 
     private static void AppendStubLookup(
         this IndentedStringBuilder builder,
-        INamedTypeSymbol stubTypeSymbol)
+        AutoStubSource stubTypeSymbol)
     {
         builder
             .Append("if (typeof(T) == typeof(")
@@ -48,17 +48,9 @@ internal static class AutoStubExtensionsEmitter
             .AppendLine("))")
             .Indent();
         builder
-            .Append("return (T)(object)new global::Nubbin.Generated.")
-            .Append(stubTypeSymbol.GetStubTypeNameWithNamespace())
-            .AppendLine("();")
+            .Append("return (T)(object)")
+            .Append(stubTypeSymbol.GetInstantiationExpression())
+            .AppendLine(";")
             .Pop();
-    }
-
-    private static INamedTypeSymbol GetStubTypeSymbol(GeneratorSyntaxContext syntaxContext, MemberAccessExpressionSyntax stub)
-    {
-        var stubType = ((GenericNameSyntax)stub.Name).TypeArgumentList.Arguments.Single();
-        var typeInfo = syntaxContext.SemanticModel.GetTypeInfo(stubType);
-        var stubTypeSymbol = (INamedTypeSymbol)typeInfo.Type!;
-        return stubTypeSymbol;
     }
 }

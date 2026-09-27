@@ -63,7 +63,7 @@ internal static class StubDefaults
                 && constructor.Parameters.Length == 0);
     }
 
-    private static string? GetDelegateExpression(INamedTypeSymbol type)
+    public static string? GetDelegateExpression(this INamedTypeSymbol type)
     {
         if (type.DelegateInvokeMethod is not IMethodSymbol delegateInvoke)
             return null;
