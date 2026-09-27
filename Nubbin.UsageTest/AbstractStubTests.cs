@@ -37,6 +37,15 @@ public class AbstractStubTests
         Assert.Null(stub.Value);
         stub.Value = "updated";
         Assert.Equal("updated", stub.Value);
+
+        var date = DateTime.Now;
+        Assert.Equal(DateTime.MinValue, stub.Struct);
+        stub.Struct = date;
+        Assert.Equal(date, stub.Struct);
+
+        Assert.Null(stub.NullableStruct);
+        stub.NullableStruct = date;
+        Assert.Equal(date, stub.NullableStruct);
     }
 
     [Fact]

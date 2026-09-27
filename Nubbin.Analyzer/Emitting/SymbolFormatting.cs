@@ -31,7 +31,7 @@ internal static class SymbolFormatting
                 res += string.Join(", ", nts.TypeArguments.Select(a => a.ToQualifiedString()));
                 res += ">";
             }
-            if (nts.NullableAnnotation != NullableAnnotation.NotAnnotated)
+            if (nts.NullableAnnotation != NullableAnnotation.NotAnnotated && !nts.IsValueType)
                 res += "?";
             return res;
         }

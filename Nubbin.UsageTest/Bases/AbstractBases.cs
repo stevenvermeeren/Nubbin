@@ -7,6 +7,8 @@ public abstract class AbstractSample
     public abstract object? GetterOnly { get; }
     public abstract int SetterOnly { set; }
     protected abstract int CreateProtected(int value);
+    public abstract DateTime Struct { get; set; }
+    public abstract DateTime? NullableStruct { get; set; }
 }
 
 public abstract class PartialBaseSample
