@@ -27,7 +27,7 @@ public class AutoStubGeneratorTests
                 {
                     var interfaceStub = Stub.Auto<IComponent>();
                     var abstractStub = Stub.Auto<AbstractComponent>();
-                    var delegateStub = Stub.Auto<System.Action>();
+                    var delegateStub = Stub.Auto<System.Action<AbstractComponent>>();
                 }
             }
             """;
@@ -44,8 +44,38 @@ public class AutoStubGeneratorTests
         Assert.Contains("new global::Nubbin.Generated.IComponentStub()", generatedSource);
         Assert.Contains("typeof(T) == typeof(global::AbstractComponent)", generatedSource);
         Assert.Contains("new global::Nubbin.Generated.AbstractComponentStub()", generatedSource);
-        Assert.Contains("typeof(T) == typeof(global::System.Action)", generatedSource);
-        Assert.Contains("new global::System.Action(() => { })", generatedSource);
+        Assert.Contains("typeof(T) == typeof(global::System.Action<global::AbstractComponent>)", generatedSource);
+        Assert.Contains("new global::System.Action<global::AbstractComponent>((_) => { })", generatedSource);
+    }
+
+    [Fact]
+    public void CanStubGenericType()
+    {
+        const string source = """
+            using Nubbin;
+            public interface IComponent<T>
+            {
+                T Value { get; set; }
+            }
+
+            public partial class Consumer
+            {
+                public void Test()
+                {
+                    var stub = Stub.Auto<IComponent<Consumer>>();
+                }
+            }
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new AutoStubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var generatedSource = string.Join(
+            Environment.NewLine,
+            driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
+
+        Assert.Contains("class IComponent_ConsumerStub", generatedSource);
     }
 
     [Fact]

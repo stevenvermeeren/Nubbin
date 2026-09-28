@@ -59,4 +59,17 @@ public class StubDefaultsTests
         var res = stub.Method();
         Assert.Equal(0, res);
     }
+
+    [Fact]
+    public void AutoStub_UsesFullyQualifiedTypeArguments()
+    {
+        var stub = Stub.Auto<GenericStub<TypeArg>>();
+
+        var ex = Record.Exception(() => stub.Property);
+        Assert.IsType<NotImplementedException>(ex);
+        var ex2 = Record.Exception(() => stub.Method(new TypeArg(0)));
+        Assert.Null(ex2);
+    }
+
+    internal record TypeArg(int _);
 }

@@ -11,6 +11,19 @@ internal abstract class AutoStubSource
     }
 
     public string GetFullyQualifiedNameWithTypeParams() => Symbol.GetFullyQualifiedNameWithTypeParams();
+    public string GetFullyQualifiedName() => Symbol.GetFullyQualifiedName();
 
     public abstract string GetInstantiationExpression();
+
+    public override bool Equals(object obj)
+    {
+        if (obj is AutoStubSource other)
+            return SymbolEqualityComparer.Default.Equals(Symbol, other.Symbol);
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return SymbolEqualityComparer.Default.GetHashCode(Symbol);
+    }
 }

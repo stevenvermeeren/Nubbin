@@ -7,18 +7,21 @@ namespace Nubbin.Analyzer.AutoStubbing;
 
 internal class AutoStubFactory
 {
-    private readonly Dictionary<string, AutoStubSource> _generatedStubs;
+    private readonly ISet<string> _generatedSources;
+    private readonly ISet<AutoStubSource> _generatedStubs;
     private readonly SourceProductionContext _productionContext;
     private readonly GeneratorSyntaxContext _syntaxContext;
 
     public AutoStubFactory(
         SourceProductionContext productionContext,
         GeneratorSyntaxContext syntaxContext,
-        Dictionary<string, AutoStubSource> generatedStubs)
+        ISet<AutoStubSource> generatedStubs,
+        ISet<string> generatedSources)
     {
         _productionContext = productionContext;
         _syntaxContext = syntaxContext;
         _generatedStubs = generatedStubs;
+        _generatedSources = generatedSources;
     }
 
     public void Process(CompilationUnitSyntax unit)
@@ -44,12 +47,12 @@ internal class AutoStubFactory
         foreach (var stub in stubs)
         {
             var (file, source) = GenerateAutoStub(containerTypeSymbol, stub);
-            if (source is not null)
+            if (source is not null && file is not null)
                 _productionContext.AddSource(file, source.ToString());
         }
     }
 
-    private (string File, string? Source) GenerateAutoStub(
+    private (string? File, string? Source) GenerateAutoStub(
         INamedTypeSymbol containerTypeSymbol,
         MemberAccessExpressionSyntax s)
     {
@@ -59,15 +62,18 @@ internal class AutoStubFactory
             ?? throw new InvalidOperationException();
 
         var file = $"{namedTypeSymbol.GetStubTypeNameWithNamespace()}.AutoStub.g.cs";
-        if (_generatedStubs.ContainsKey(file))
-            return (file, null);
-
         if (namedTypeSymbol.DelegateInvokeMethod is not null)
         {
-            _generatedStubs.Add(file, new DelegateSource(namedTypeSymbol));
+            _generatedSources.Add(file);
+            _generatedStubs.Add(new DelegateSource(namedTypeSymbol));
             return (file, null);
         }
-        _generatedStubs.Add(file, new TypeSymbolSource(namedTypeSymbol));
+
+        _generatedStubs.Add(new TypeSymbolSource(namedTypeSymbol));
+        if (!_generatedSources.Add(file))
+        {
+            return (file, null);
+        }
 
         var _namespace = "Nubbin.Generated";
         if (!namedTypeSymbol.ContainingNamespace.IsGlobalNamespace) 
@@ -79,7 +85,7 @@ internal class AutoStubFactory
             Namespace = _namespace,
             BaseType = namedTypeSymbol,
             AllInterfaces = [namedTypeSymbol, ..namedTypeSymbol.AllInterfaces],
-            ContainingAssembly = containerTypeSymbol.ContainingAssembly
+            ContainingAssembly = containerTypeSymbol.ContainingAssembly,       
         };
 
         return (file, StubSourceEmitter.Emit(stub));

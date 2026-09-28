@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Nubbin.Analyzer.Emitting;
@@ -56,25 +57,26 @@ internal static class PropertyStorageEmitter
                     .AppendLine("/// <param name=\"owner\">The stub instance that owns the properties.</param>")
                     .AppendLine("/// <returns>The typed property storage for <paramref name=\"owner\"/>.</returns>");
                 builder
-                    .Append("internal static ")
-                    .Append(typeName)
+                    .Append("internal static global::")
+                    .Append(GetStubTypeName(type))
                     .Append(".")
                     .Append(GetPropertyStorageTypeName(type))
                     .Append(" GetPropertyHelper")
-                    .Append(referenceType.FormatTypeParams())
+                    .Append(ShouldIncludeTypeParameters(referenceType) ? referenceType.FormatTypeParams() : "")
                     .Append("(this ")
                     .Append(typeName)
                     .AppendLine(" owner)")
                     .Indent();
-                foreach (var typeParam in referenceType.TypeParameters)
-                    builder.Indent().AppendLine(typeParam.FormatConstraints()).Pop();
+                if (ShouldIncludeTypeParameters(referenceType))
+                    foreach (var typeParam in referenceType.TypeParameters)
+                        builder.Indent().AppendLine(typeParam.FormatConstraints()).Pop();
                 builder
-                    .Append("=> (owner as ")
-                    .Append(typeName)
+                    .Append("=> (owner as global::")
+                    .Append(GetStubTypeName(type))
                     .Append(")?.")
                     .Append(PropertyContainerFieldName)
-                    .Append(" ?? new ")
-                    .Append(typeName)
+                    .Append(" ?? new global::")
+                    .Append(GetStubTypeName(type))
                     .Append(".")
                     .Append(GetPropertyStorageTypeName(type))
                     .Append("();")
@@ -85,5 +87,30 @@ internal static class PropertyStorageEmitter
     private static string GetPropertyStorageTypeName(StubDefinition type)
     {
         return type.Name + "PropertyContainer";
+    }
+
+    private static string GetStubTypeName(StubDefinition type)
+    {
+        var builder = new StringBuilder();
+        if(type.Namespace.Length > 0)
+            builder.Append(type.Namespace).Append(".");
+        if (type.ContainingType is not null)
+            builder.Append(FormatContainingTypes(type.ContainingType)).Append(".");
+        builder.Append(type.Name);
+        if (type.LeafType is not null && ShouldIncludeTypeParameters(type.LeafType))
+            builder.Append(type.LeafType.FormatTypeParams());
+        return builder.ToString();
+    }
+
+    private static bool ShouldIncludeTypeParameters(INamedTypeSymbol type)
+    {
+        return type.TypeArguments.Any(a => a.Kind == SymbolKind.TypeParameter);
+    }
+
+    private static string FormatContainingTypes(ITypeSymbol type)
+    {
+        if (type.ContainingType is null)
+            return type.Name;
+        return $"{FormatContainingTypes(type)}.{type.Name}";
     }
 }

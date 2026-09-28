@@ -7,13 +7,18 @@ internal static class SymbolFormatting
 {
     public static string GetStubTypeName(this INamedTypeSymbol type)
     {
-        return WithParentTypes(type, '_') + "Stub";
+        return WithParentTypes(type, '_') + FormatTypeParamsForName(type) + "Stub";
     }
 
     public static string GetStubTypeNameWithNamespace(this INamedTypeSymbol type)
     {
-        return type.GetFullyQualifiedName(false, '_') + "Stub";
+        return type.GetFullyQualifiedName(false, '_') + FormatTypeParamsForName(type) + "Stub";
     }
+
+    private static string FormatTypeParamsForName(INamedTypeSymbol type) =>
+        type.TypeArguments.Any()
+            ? "_" + string.Join("_", type.TypeArguments.OfType<INamedTypeSymbol>().Select(a => a.Name + FormatTypeParamsForName(a)))
+            : "";
 
     private static readonly SymbolDisplayFormat FullyQualifiedFormat =
         SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(
@@ -24,13 +29,7 @@ internal static class SymbolFormatting
         if (type is INamedTypeSymbol nts && type.SpecialType != SpecialType.System_Void)
         {
             // custom logic to ensure ? on types define without nullability awareness
-            var res = $"{GetFullyQualifiedName(nts)}";
-            if (nts.IsGenericType)
-            {
-                res += "<";
-                res += string.Join(", ", nts.TypeArguments.Select(a => a.ToQualifiedString()));
-                res += ">";
-            }
+            var res = $"{GetFullyQualifiedName(nts)}{FormatTypeParams(nts)}";
             if (nts.NullableAnnotation != NullableAnnotation.NotAnnotated && !nts.IsValueType)
                 res += "?";
             return res;
@@ -67,7 +66,10 @@ internal static class SymbolFormatting
     {
         if (symbol is null || !symbol.TypeArguments.Any())
             return string.Empty;
-        return "<" + string.Join(", ", symbol.TypeArguments.Select(p => p.Name)) + ">";
+        return "<" + string.Join(", ", symbol.TypeArguments.Select(p => 
+            p.ContainingNamespace is null
+                ? p.Name
+                : p.ToQualifiedString())) + ">";
     }
 
     public static string FormatConstraints(this ITypeParameterSymbol symbol)

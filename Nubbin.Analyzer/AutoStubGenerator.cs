@@ -28,15 +28,16 @@ public sealed class AutoStubGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(targets, (productionContext, syntaxContexts) =>
         {
-            var generatedStubs = new Dictionary<string, AutoStubSource>();
+            var generatedStubs = new HashSet<AutoStubSource>();
+            var generatedSources = new HashSet<string>();
             foreach (var syntaxContext in syntaxContexts)
             {
                 var unit = (CompilationUnitSyntax)syntaxContext.Node;
-                var generator = new AutoStubFactory(productionContext, syntaxContext, generatedStubs);
+                var generator = new AutoStubFactory(productionContext, syntaxContext, generatedStubs, generatedSources);
                 generator.Process(unit);
             }
 
-            var extensions = AutoStubExtensionsEmitter.Emit(generatedStubs.Values);
+            var extensions = AutoStubExtensionsEmitter.Emit(generatedStubs);
             productionContext.AddSource($"AutoStubExtensions.g.cs", extensions.ToString());
         });
     }

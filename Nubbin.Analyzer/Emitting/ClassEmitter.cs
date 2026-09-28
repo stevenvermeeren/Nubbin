@@ -15,7 +15,9 @@ internal static class ClassEmitter
         public INamedTypeSymbol[] BaseTypes { get; set; } = [];
 
         public Definition(StubDefinition type) : this(type.Accessibility, type.Name)
-        { }
+        {
+            TypeParameters = type.LeafType?.TypeParameters ?? [];
+        }
 
         public Definition(INamedTypeSymbol type) : this(type.DeclaredAccessibility, type.Name)
         { }
@@ -50,7 +52,7 @@ internal static class ClassEmitter
         if (definition.BaseTypes.Length > 0)
             builder
                 .Append(" : ")
-                .Append(string.Join(", ", definition.BaseTypes.Select(t => t.GetFullyQualifiedName())));
+                .Append(string.Join(", ", definition.BaseTypes.Select(t => t.GetFullyQualifiedNameWithTypeParams())));
 
         builder.AppendLine();
         foreach (var typeParam in definition.TypeParameters)
