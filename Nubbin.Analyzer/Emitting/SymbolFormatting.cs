@@ -72,6 +72,14 @@ internal static class SymbolFormatting
                 : p.ToQualifiedString())) + ">";
     }
 
+    public static IndentedStringBuilder AppendTypeConstraints(this IndentedStringBuilder source, IEnumerable<ITypeParameterSymbol> typeParams)
+    {
+        foreach (var typeParam in typeParams)
+            if (typeParam.FormatConstraints() is { Length: > 0 } constraint)
+                source.Indent().AppendLine(constraint).Pop();
+        return source;
+    }
+
     public static string FormatConstraints(this ITypeParameterSymbol symbol)
     {
         var builder = new StringBuilder("where ");

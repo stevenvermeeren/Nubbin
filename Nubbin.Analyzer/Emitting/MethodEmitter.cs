@@ -7,6 +7,8 @@ internal static class MethodEmitter
     public static void AppendMethod(this IndentedStringBuilder source, IMethodSymbol method, StubDefinition type)
     {
         source.AppendLine(type.GetMethodDeclaration(method));
+        if (method.ContainingType.TypeKind == TypeKind.Interface)
+            source.AppendTypeConstraints(method.TypeParameters);
         source.AppendLine("{").Indent();
         foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.Out))
         {

@@ -55,9 +55,7 @@ internal static class ClassEmitter
                 .Append(string.Join(", ", definition.BaseTypes.Select(t => t.GetFullyQualifiedNameWithTypeParams())));
 
         builder.AppendLine();
-        foreach (var typeParam in definition.TypeParameters)
-            if (typeParam.FormatConstraints() is { Length: > 0 } constraint)
-                builder.Indent().AppendLine(constraint).Pop();
+        builder.AppendTypeConstraints(definition.TypeParameters);
         builder.AppendLine("{").Indent();
 
         emitContents();

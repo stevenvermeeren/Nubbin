@@ -5,19 +5,22 @@ namespace Nubbin.Analyzer.Emitting;
 
 internal static class PropertyStorageEmitter
 {
-    public const string PropertyContainerFieldName = "_nubbinPropertyContainer";
+    public const string PropertyContainerFieldName = "__Nubbin__PropertyContainer";
 
     public static void AppendPropertyStorage(
         this IndentedStringBuilder builder,
         StubDefinition type,
         IReadOnlyCollection<IPropertySymbol> properties)
     {
+        builder.AppendLine("#pragma warning disable CS0108 // Potentially hiding member");
         builder
             .Append("internal readonly ")
             .Append(GetPropertyStorageTypeName(type))
             .Append(" ")
             .Append(PropertyContainerFieldName)
             .AppendLine(" = new();");
+        builder.AppendLine("#pragma warning restore CS0108 // Potentially hiding member");
+
         builder.WithClass(
             new ClassEmitter.Definition(Accessibility.Internal, GetPropertyStorageTypeName(type))
             {
