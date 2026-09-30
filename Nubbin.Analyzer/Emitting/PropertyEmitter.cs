@@ -43,7 +43,11 @@ internal static class PropertyEmitter
 
     public static void AppendAutoPropertyBody(this IndentedStringBuilder source, IPropertySymbol property)
     {
-        if (property.Type.RequiresNotImplemented())
+        var notNull = property.GetAttributes().Any(a =>
+            a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
+            a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
+        
+        if (property.Type.RequiresNotImplemented(!notNull))
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
@@ -55,7 +59,7 @@ internal static class PropertyEmitter
         {
             source
                 .Append(" { get; set; } = ")
-                .Append(property.Type.GetReturnExpression())
+                .Append(property.Type.GetReturnExpression(!notNull))
                 .AppendLine(";");
         }
     }
@@ -67,8 +71,9 @@ internal static class PropertyEmitter
             ? string.Empty
             : "override ";
         var accessibility = property.GetMemberAccessibility(type.ContainingAssembly);
+        var attributes = property.GetAttributes().Format();
 
-        return $"{accessibility} {overrideModifier}{propertyType} {property.Name}";
+        return $"{attributes}{accessibility} {overrideModifier}{propertyType} {property.Name}";
     }
 
     private static bool HasGetter(this IPropertySymbol property)

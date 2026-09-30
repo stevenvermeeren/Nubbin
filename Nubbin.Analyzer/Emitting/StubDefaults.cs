@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -20,7 +21,7 @@ internal static class StubDefaults
         return false;
     }
 
-    public static string GetReturnExpression(this ITypeSymbol returnType)
+    public static string GetReturnExpression(this ITypeSymbol returnType, bool nullAllowed = true)
     {
         if (returnType is ITypeParameterSymbol typeParam)
         {
@@ -35,7 +36,7 @@ internal static class StubDefaults
         }
 
         if (returnType is INamedTypeSymbol constructibleType
-            && returnType.NullableAnnotation == NullableAnnotation.NotAnnotated
+            && (returnType.NullableAnnotation == NullableAnnotation.NotAnnotated || !nullAllowed)
             && HasPublicParameterlessConstructor(constructibleType))
         {
             return "new " + returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + "()";
@@ -44,18 +45,33 @@ internal static class StubDefaults
         return "default";
     }
 
-    public static bool RequiresNotImplemented(this ITypeSymbol returnType)
+    public static bool CanInstantiate(ITypeSymbol type)
+    {
+        if (IsTask(type, out var taskResultType))
+        {
+            if (taskResultType is not null && RequiresNotImplemented(taskResultType))
+                return false;
+        }
+        else if (RequiresNotImplemented(type))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public static bool RequiresNotImplemented(this ITypeSymbol returnType, bool nullAllowed = true)
     {
         if (returnType is ITypeParameterSymbol typeParam)
         {
             if (typeParam.HasConstructorConstraint
                 || typeParam.HasValueTypeConstraint
-                || returnType.NullableAnnotation != NullableAnnotation.NotAnnotated)
+                || (returnType.NullableAnnotation != NullableAnnotation.NotAnnotated && nullAllowed))
                 return false;
             return true;
         }
 
-        if (!returnType.IsReferenceType || returnType.NullableAnnotation != NullableAnnotation.NotAnnotated)
+        if (!returnType.IsReferenceType
+            || (returnType.NullableAnnotation != NullableAnnotation.NotAnnotated && nullAllowed))
         {
             return false;
         }

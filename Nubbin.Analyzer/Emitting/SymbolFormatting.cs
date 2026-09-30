@@ -72,6 +72,15 @@ internal static class SymbolFormatting
                 : p.ToQualifiedString())) + ">";
     }
 
+    public static string Format(this IEnumerable<AttributeData> attributes)
+    {
+        return string.Join(
+            "", 
+            attributes
+                .Where(a => a.AttributeClass?.GetFullyQualifiedName(false) != "System.Runtime.CompilerServices.NullableAttribute")
+                .Select(a => $"[global::{a}] "));
+    }
+
     public static IndentedStringBuilder AppendTypeConstraints(this IndentedStringBuilder source, IEnumerable<ITypeParameterSymbol> typeParams)
     {
         foreach (var typeParam in typeParams)

@@ -287,4 +287,20 @@ public class MethodEmitterTests
 
         Assert.Contains("value = global::System.Threading.Tasks.Task.FromResult<global::Example.MyType>(new global::Example.MyType())", result);
     }
+
+    [Fact]
+    public void AppendMethod_IncludesNullabilityAttributes()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public class MyType { public MyType() {} } public interface IComponent { bool TryGet([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out object? value); }");
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("bool TryGet([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] out object? value)", result);
+    }
 }
