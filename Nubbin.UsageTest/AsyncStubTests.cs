@@ -26,4 +26,12 @@ public class AsyncStubTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task StubbedTaskPropertyReturnsDefaultResult()
+    {
+        var result = await new AsyncStub().TaskProperty;
+
+        Assert.Null(result);
+    }
 }

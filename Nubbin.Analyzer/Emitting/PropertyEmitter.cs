@@ -47,7 +47,7 @@ internal static class PropertyEmitter
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
         
-        if (property.Type.RequiresNotImplemented(!notNull))
+        if (!property.Type.CanBeInstantiated(!notNull))
         {
             source.AppendLine();
             source.AppendLine("{").Indent();

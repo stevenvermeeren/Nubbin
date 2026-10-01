@@ -70,21 +70,21 @@ public class DelegateStubTests
     }
     
     [Fact]
-    public void ReturnsDelegate()
+    public async Task ReturnsDelegate()
     {
         var result = new DelegateStub().GetDelegate();
 
         Assert.NotNull(result);
-        var res = result("input", 0);
+        var res = await result("input", 0);
         Assert.Equal(42, res.Value);
     }
 
     [Fact]
-    public void CanAutostubDelegate()
+    public async Task CanAutostubDelegate()
     {
         var stub = Stub.Auto<SampleDelegate>();
 
-        var res = stub("input", 0);
+        var res = await stub("input", 0);
         Assert.Equal(42, res.Value);
     }
 

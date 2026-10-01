@@ -23,6 +23,19 @@ internal static class StubDefaults
 
     public static string GetReturnExpression(this ITypeSymbol returnType, bool nullAllowed = true)
     {
+        if (IsTask(returnType, out var outTaskResultType))
+        {
+            if (outTaskResultType is null)
+            {
+                return "global::System.Threading.Tasks.Task.CompletedTask";
+            }
+            else
+            {
+                return $"global::System.Threading.Tasks.Task.FromResult<{outTaskResultType.ToQualifiedString()}>" +
+                    $"({GetReturnExpression(outTaskResultType)})";
+            }
+        }
+
         if (returnType is ITypeParameterSymbol typeParam)
         {
             if (typeParam.HasConstructorConstraint)
@@ -45,21 +58,21 @@ internal static class StubDefaults
         return "default";
     }
 
-    public static bool CanInstantiate(ITypeSymbol type)
+    public static bool CanBeInstantiated(this ITypeSymbol type, bool nullAllowed = true)
     {
         if (IsTask(type, out var taskResultType))
         {
-            if (taskResultType is not null && RequiresNotImplemented(taskResultType))
+            if (taskResultType is not null && RequiresNotImplemented(taskResultType, nullAllowed))
                 return false;
         }
-        else if (RequiresNotImplemented(type))
+        else if (RequiresNotImplemented(type, nullAllowed))
         {
             return false;
         }
         return true;
     }
 
-    public static bool RequiresNotImplemented(this ITypeSymbol returnType, bool nullAllowed = true)
+    private static bool RequiresNotImplemented(this ITypeSymbol returnType, bool nullAllowed = true)
     {
         if (returnType is ITypeParameterSymbol typeParam)
         {
@@ -104,7 +117,7 @@ internal static class StubDefaults
         string rhs;
         if (delegateInvoke.ReturnsVoid)
             rhs = "{ }";
-        else if (RequiresNotImplemented(delegateInvoke.ReturnType))
+        else if (!delegateInvoke.ReturnType.CanBeInstantiated())
             rhs = "throw new global::System.NotImplementedException()";
         else
             rhs = GetReturnExpression(delegateInvoke.ReturnType);

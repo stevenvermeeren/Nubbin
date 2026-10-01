@@ -32,23 +32,4 @@ public class StubDefaultsTests
 
         Assert.Equal(expectedExpression, StubDefaults.GetReturnExpression(returnType));
     }
-
-    [Fact]
-    public void RequiresNotImplementedForNonNullableUnsupportedReference()
-    {
-        var compilation = GeneratorTestHelpers.CreateCompilation("class Subject { string Value => \"value\"; }");
-        var returnType = GeneratorTestHelpers.GetType(compilation, "Subject").GetMembers("Value").OfType<IPropertySymbol>().Single().Type;
-
-        Assert.True(StubDefaults.RequiresNotImplemented(returnType));
-    }
-
-    [Fact]
-    public void ConstructibleNonNullableReferenceGetsNewInstance()
-    {
-        var compilation = GeneratorTestHelpers.CreateCompilation("class Value { } class Subject { Value Property => new(); }");
-        var returnType = GeneratorTestHelpers.GetType(compilation, "Subject").GetMembers("Property").OfType<IPropertySymbol>().Single().Type;
-
-        Assert.Equal("new global::Value()", StubDefaults.GetReturnExpression(returnType));
-        Assert.False(StubDefaults.RequiresNotImplemented(returnType));
-    }
 }

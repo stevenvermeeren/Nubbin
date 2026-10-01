@@ -15,49 +15,12 @@ internal static class MethodEmitter
         {
             foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.Out))
             {
-                if (StubDefaults.IsTask(parameter.Type, out var outTaskResultType))
-                {
-                    if (outTaskResultType is null)
-                    {
-                        source
-                            .Append(parameter.Name)
-                            .AppendLine(" = global::System.Threading.Tasks.Task.CompletedTask;");
-                    }
-                    else
-                    {
-                        source
-                            .Append(parameter.Name)
-                            .Append(" = global::System.Threading.Tasks.Task.FromResult<")
-                            .Append(outTaskResultType.ToQualifiedString())
-                            .Append(">(")
-                            .Append(StubDefaults.GetReturnExpression(outTaskResultType))
-                            .AppendLine(");");
-                    }
-                }
-                else
-                {
-                    source.Append(parameter.Name).Append(" = ")
-                        .Append(StubDefaults.GetReturnExpression(parameter.Type))
-                        .AppendLine(";");
-                }
+                source.Append(parameter.Name).Append(" = ")
+                    .Append(StubDefaults.GetReturnExpression(parameter.Type))
+                    .AppendLine(";");
             }
 
-            if (StubDefaults.IsTask(method.ReturnType, out var taskResultType))
-            {
-                if (taskResultType is null)
-                {
-                    source.AppendLine("return global::System.Threading.Tasks.Task.CompletedTask;");
-                }
-                else
-                {
-                    source.Append("return global::System.Threading.Tasks.Task.FromResult<")
-                        .Append(taskResultType.ToQualifiedString())
-                        .Append(">(")
-                        .Append(StubDefaults.GetReturnExpression(taskResultType))
-                        .AppendLine(");");
-                }
-            }
-            else if (!method.ReturnsVoid)
+            if (!method.ReturnsVoid)
             {
                 source.Append("return ").Append(StubDefaults.GetReturnExpression(method.ReturnType)).AppendLine(";");
             }
@@ -72,14 +35,14 @@ internal static class MethodEmitter
 
     private static bool CanImplement(IMethodSymbol method)
     {
-        if (!StubDefaults.CanInstantiate(method.ReturnType))
+        if (!method.ReturnType.CanBeInstantiated())
             return false;
 
         foreach (var param in method.Parameters)
         {
             if (param.RefKind == RefKind.Out)
             {
-                if (!StubDefaults.CanInstantiate(param.Type))
+                if (!param.Type.CanBeInstantiated())
                     return false;
             }
 

@@ -1,6 +1,6 @@
 namespace Nubbin.UsageTest.Bases;
 
-public delegate DefaultConstructible SampleDelegate(string text, int param);
+public delegate Task<DefaultConstructible> SampleDelegate(string text, int param);
 public interface IDelegateSample
 {
     Action GetAction();
