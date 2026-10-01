@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.8.0...Nubbin-v0.9.0) (2026-10-01)
+
+
+### Features
+
+* Add support for auto-stubbing delegates ([8a9b8e5](https://github.com/stevenvermeeren/Nubbin/commit/8a9b8e5e0d66a526bd8ae59aff095e01721ff45a))
+* add support for stubbing generic types ([b669013](https://github.com/stevenvermeeren/Nubbin/commit/b669013e15ec0639e89fadce313a33be6e459218))
+* default to empty string value for string types ([6d86f1a](https://github.com/stevenvermeeren/Nubbin/commit/6d86f1a9da5f2d6b2df16d19caddde319574c996))
+* handle nullability annotations ([e166581](https://github.com/stevenvermeeren/Nubbin/commit/e1665817fc6904af398d6e3d631fe2a7f752a29d))
+
+
+### Bug Fixes
+
+* corrections for various scenarios with generics ([149521a](https://github.com/stevenvermeeren/Nubbin/commit/149521ae1eae7fdae12348beaeef1b4f79cc28cb))
+* fix method type constraints & compiler warning ([8d9a85e](https://github.com/stevenvermeeren/Nubbin/commit/8d9a85e10b60973252784ffadaf8bb722cb0286c))
+* properly handle nullable valuetypes ([8be590c](https://github.com/stevenvermeeren/Nubbin/commit/8be590cedaa206d58547275c1471a93a9949b277))
+* return completed tasks from properties and delegates ([395dab0](https://github.com/stevenvermeeren/Nubbin/commit/395dab04e9fe663333c0dbd8ee7a3cb4dee3bf25))
+
 ## [0.8.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.7.0...Nubbin-v0.8.0) (2026-09-23)
 
 
