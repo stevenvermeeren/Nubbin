@@ -91,13 +91,6 @@ internal class AutoStubFactory
         return (file, StubSourceEmitter.Emit(stub));
     }
 
-    private static string CreateStubKey(INamedTypeSymbol type)
-    {
-        if (type.ContainingType is INamedTypeSymbol parent)
-            return $"{CreateStubKey(parent)}_{type.Name}";
-        return type.Name;
-    }
-
     private static IEnumerable<MemberAccessExpressionSyntax> FindAutoStubs(SyntaxNode node)
     {
         return node.DescendantNodes()

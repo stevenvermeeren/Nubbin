@@ -114,6 +114,6 @@ internal static class PropertyStorageEmitter
     {
         if (type.ContainingType is null)
             return type.Name;
-        return $"{FormatContainingTypes(type)}.{type.Name}";
+        return $"{FormatContainingTypes(type.ContainingType)}.{type.Name}";
     }
 }

@@ -157,6 +157,79 @@ public class AutoStubGeneratorTests
     }
 
     [Fact]
+    public void AllowsAutoStubGenerationWhenConsumerIsInsideNubbinNamespace()
+    {
+        const string source = """
+            namespace Nubbin.Examples;
+
+            public interface IComponent
+            {
+                int Value { get; set; }
+            }
+
+            public class Consumer
+            {
+                public void Test()
+                {
+                    var component = Stub.Auto<IComponent>();
+                    _ = component.Value;
+                }
+            }
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new AutoStubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var generatedSource = string.Join(
+            Environment.NewLine,
+            driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
+
+        Assert.DoesNotContain(driver.GetRunResult().Diagnostics, diagnostic => diagnostic.Id == Diagnostics.AutoStubMissingUsingError.Id);
+        Assert.Contains("typeof(T) == typeof(global::Nubbin.Examples.IComponent)", generatedSource);
+        Assert.Contains("new global::Nubbin.Generated.Nubbin.Examples.IComponentStub()", generatedSource);
+    }
+
+    [Fact]
+    public void DeduplicatesGeneratedSourceWhenTheSameTypeIsAutoStubbedMultipleTimes()
+    {
+        const string source = """
+            using Nubbin;
+            public interface IComponent
+            {
+                int Value { get; set; }
+            }
+
+            public partial class ConsumerA
+            {
+                public void Test()
+                {
+                    _ = Stub.Auto<IComponent>().Value;
+                }
+            }
+
+            public partial class ConsumerB
+            {
+                public void Test()
+                {
+                    _ = Stub.Auto<IComponent>().Value;
+                }
+            }
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new AutoStubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var generatedSource = string.Join(
+            Environment.NewLine,
+            driver.GetRunResult().Results.SelectMany(result => result.GeneratedSources).Select(sourceText => sourceText.SourceText.ToString()));
+
+        Assert.Equal(1, generatedSource.Split("new global::Nubbin.Generated.IComponentStub()", StringSplitOptions.None).Length - 1);
+        Assert.Equal(1, generatedSource.Split("typeof(T) == typeof(global::IComponent)", StringSplitOptions.None).Length - 1);
+    }
+
+    [Fact]
     public void ReportsDiagnostics()
     {
         const string source = """

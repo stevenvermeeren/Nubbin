@@ -11,7 +11,6 @@ internal abstract class AutoStubSource
     }
 
     public string GetFullyQualifiedNameWithTypeParams() => Symbol.GetFullyQualifiedNameWithTypeParams();
-    public string GetFullyQualifiedName() => Symbol.GetFullyQualifiedName();
 
     public abstract string GetInstantiationExpression();
 

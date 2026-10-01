@@ -289,6 +289,39 @@ public class MethodEmitterTests
     }
 
     [Fact]
+    public void AppendMethod_ReturnsNotImplemented_WhenReturnTypeCannotBeConstructed()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface IComponent { global::System.Uri GetValue(); }");
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("GetValue").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("throw new global::System.NotImplementedException();", result);
+    }
+
+    [Fact]
+    public void AppendMethod_ThrowsWhenParameterHasNotNullWhenFalseAttribute()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface IComponent { bool IsValid([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] string? value); }");
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
+        var method = type.LeafType!.GetMembers("IsValid").OfType<IMethodSymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendMethod(method, type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(false)]", result);
+        Assert.Contains("throw new global::System.NotImplementedException();", result);
+    }
+
+    [Fact]
     public void AppendMethod_IncludesNullabilityAttributes()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
