@@ -27,7 +27,7 @@ public class StubGeneratorTests
         Assert.Contains("public override int Value", generatedSource);
         Assert.Contains("public override string Read()", generatedSource);
         Assert.Contains("{ get; set; } = default;", generatedSource);
-        Assert.Contains("throw new global::System.NotImplementedException();", generatedSource);
+        Assert.Contains("return global::System.String.Empty;", generatedSource);
     }
 
     [Fact]

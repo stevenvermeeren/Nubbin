@@ -4,6 +4,7 @@ public interface IParameterSample
 {
     void Update(ref int value);
     void Read(out int value);
+    void ReadString(out string value);
     void ReadNullable(out string? value);
     void ReadConstructible(out DefaultConstructible value);
     void ReadUnsupported(out NoDefaultConstructor value);

@@ -45,7 +45,7 @@ public class MethodEmitterTests
     public void AppendMethod_OutParameter_ThrowsWhenNotConstructible()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
-            "namespace Example; public interface IComponent { void TryGet(out string value); }");
+            "namespace Example; record Content(int param); public interface IComponent { void TryGet(out Content value); }");
         var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
@@ -128,7 +128,7 @@ public class MethodEmitterTests
     public void AppendMethod_TaskOfT_ThrowsForUnconstructible()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
-            "namespace Example; public interface IComponent { System.Threading.Tasks.Task<string> GetAsync(); }");
+            "namespace Example; record Content(int param); public interface IComponent { System.Threading.Tasks.Task<Content> GetAsync(); }");
         var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
         var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
 
@@ -137,7 +137,7 @@ public class MethodEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("public global::System.Threading.Tasks.Task<string> GetAsync()", result);
+        Assert.Contains("public global::System.Threading.Tasks.Task<global::Example.Content> GetAsync()", result);
         Assert.Contains("throw new global::System.NotImplementedException();", result);
     }
 
@@ -260,7 +260,7 @@ public class MethodEmitterTests
     public void AppendMethod_OutParameter_TaskOfT_ThrowsWhenUnconstructible()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
-            "namespace Example; public interface IComponent { void TryGet(out System.Threading.Tasks.Task<string> value); }");
+            "namespace Example; record Content(int param); public interface IComponent { void TryGet(out System.Threading.Tasks.Task<Content> value); }");
         var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IComponent"));
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 

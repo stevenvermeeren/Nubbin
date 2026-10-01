@@ -43,6 +43,7 @@ internal static class StubDefaults
         }
 
         if (returnType is INamedTypeSymbol namedType
+            && (returnType.NullableAnnotation == NullableAnnotation.NotAnnotated || !nullAllowed)
             && (GetCollectionExpression(namedType) ?? GetDelegateExpression(namedType)) is string expression)
         {
             return expression;
@@ -134,6 +135,8 @@ internal static class StubDefaults
 
         return typeName switch
         {
+            "System.String" =>
+                "global::System.String.Empty",
             "System.Collections.Generic.IEnumerable" when typeArguments.Length == 1 =>
                 "global::System.Array.Empty<" + typeArguments[0] + ">()",
             "System.Collections.Generic.IReadOnlyCollection" when typeArguments.Length == 1 =>

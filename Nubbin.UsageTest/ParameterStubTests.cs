@@ -27,11 +27,13 @@ public class ParameterStubTests
     {
         var stub = new ParameterStub();
 
+        stub.ReadString(out var stringResult);
         stub.ReadNullable(out var nullableResult);
         stub.ReadConstructible(out var constructibleResult);
         stub.ReadTask(out var basicTask);
         stub.ReadConstructibleTask(out var typedTask);
 
+        Assert.Equal(string.Empty, stringResult);
         Assert.Null(nullableResult);
         Assert.Equal(42, constructibleResult.Value);
         Assert.True(basicTask.IsCompleted);

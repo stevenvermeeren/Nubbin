@@ -78,7 +78,7 @@ public class PropertyEmitterTests
     public void AppendAutoPropertyBody_GeneratesNotImplementedForNonConstructibleReferenceType()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
-            "namespace Example; public class Subject { public string Name { get; set; } }"
+            "namespace Example; public class Subject(int param) { public Subject Name { get; set; } }"
         );
         var property = GeneratorTestHelpers.GetType(compilation, "Example.Subject").GetMembers().OfType<IPropertySymbol>().Single();
 
