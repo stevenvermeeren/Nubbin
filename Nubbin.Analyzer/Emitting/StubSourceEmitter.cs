@@ -50,12 +50,15 @@ internal static class StubSourceEmitter
                         }
                     });
             });
+        });
 
-            if (storageProperties.Length > 0)
+        if (storageProperties.Length > 0)
+        {
+            builder.WithNamespace("Nubbin", () =>
             {
                 builder.AppendPropertyStorageLookup(type);
-            }
-        });
+            });
+        }
 
         return builder.ToString();
     }

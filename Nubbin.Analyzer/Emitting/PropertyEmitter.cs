@@ -90,7 +90,6 @@ internal static class PropertyEmitter
 
     public static bool RequiresPropertyStorage(IPropertySymbol property)
     {
-        return property.ContainingType.TypeKind != TypeKind.Interface
-            && (property.GetMethod is null) != (property.SetMethod is null);
+        return (property.GetMethod is null) != (property.SetMethod is null);
     }
 }

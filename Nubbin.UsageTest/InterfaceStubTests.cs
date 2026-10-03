@@ -62,6 +62,19 @@ public class InterfaceStubTests
     }
 
     [Fact]
+    public void StubbedOneSidedInterfacePropertiesIncludesHelper()
+    {
+        var stub = Stub.Auto<InterfaceSample>();
+
+        Assert.Null(stub.GetterOnly);
+        stub.GetPropertyHelper().GetterOnly = "updated";
+        Assert.Equal("updated", stub.GetterOnly);
+
+        stub.SetterOnly = 42;
+        Assert.Equal(42, stub.GetPropertyHelper().SetterOnly);
+    }
+
+    [Fact]
     public void StubbedCollectionMembersUseEmptyCompatibleCollections()
     {
         var stub = new InterfaceStub();
