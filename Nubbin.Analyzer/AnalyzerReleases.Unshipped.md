@@ -7,3 +7,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 NUBBIN001 | Nubbin | Error | Diagnostics
 NUBBIN002 | Nubbin | Error | Diagnostics
+NUBBIN003 | Nubbin | Error | Diagnostics

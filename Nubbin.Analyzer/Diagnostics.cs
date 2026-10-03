@@ -21,4 +21,12 @@ internal static class Diagnostics
         category: "Nubbin",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ContainerPartialStubError = new(
+        id: "NUBBIN003",
+        title: "Container of stub class must be partial",
+        messageFormat: "'{0}' is annotated with [Stub] but is contained in a type that is not partial",
+        category: "Nubbin",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

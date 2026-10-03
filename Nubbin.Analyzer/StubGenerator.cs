@@ -37,7 +37,7 @@ public sealed class StubGenerator : IIncrementalGenerator
         INamedTypeSymbol symbol,
         SourceProductionContext productionContext,
         GeneratorAttributeSyntaxContext syntaxContext)
-        {
+    {
         if (!IsPartial(symbol))
         {
             productionContext.ReportDiagnostic(
@@ -47,7 +47,26 @@ public sealed class StubGenerator : IIncrementalGenerator
                     symbol.Name));
             return false;
         }
+        if (HasNonPartialContainer(symbol))
+        {
+            productionContext.ReportDiagnostic(
+                Diagnostic.Create(
+                    Diagnostics.ContainerPartialStubError,
+                    GetAttributeFromClass(syntaxContext).GetLocation(),
+                    symbol.Name));
+            return false;
+        }
         return true;
+    }
+
+    private static bool HasNonPartialContainer(INamedTypeSymbol symbol)
+    {
+        var parent = symbol.ContainingType;
+        if (parent is null)
+            return false;
+        if (!IsPartial(parent))
+            return true;
+        return HasNonPartialContainer(parent);
     }
 
     private static bool IsPartial(INamedTypeSymbol symbol)

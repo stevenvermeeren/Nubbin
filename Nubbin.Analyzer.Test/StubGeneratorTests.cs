@@ -56,6 +56,34 @@ public class StubGeneratorTests
     }
 
     [Fact]
+    public void ReportsDiagnosticWhenContainingClassIsNotPartial()
+    {
+        const string source = """
+            public abstract class Base
+            {
+                public abstract int Value { get; set; }
+            }
+
+            public class Parent
+            {
+                [Nubbin.Stub]
+                public partial class Subject : Base;
+            }
+            """;
+
+        var compilation = GeneratorTestHelpers.CreateCompilation(source);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new StubGenerator());
+
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+
+        Assert.Contains(
+            driver.GetRunResult().Diagnostics,
+            diagnostic => diagnostic.Id == Diagnostics.ContainerPartialStubError.Id
+                && diagnostic.Location.SourceSpan.Start == 103
+                && diagnostic.Location.SourceSpan.End == 114);
+    }
+
+    [Fact]
     public void DoesNotGenerateForUnmarkedClasses()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation("public partial class Subject { }");
