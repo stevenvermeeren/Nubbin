@@ -52,7 +52,7 @@ internal static class StubSourceEmitter
             });
         });
 
-        if (storageProperties.Length > 0)
+        if (storageProperties.Length > 0 && IsAccessible(type.LeafType ?? type.BaseType!))
         {
             builder.WithNamespace("Nubbin", () =>
             {
@@ -61,6 +61,15 @@ internal static class StubSourceEmitter
         }
 
         return builder.ToString();
+    }
+
+    private static bool IsAccessible(INamedTypeSymbol type)
+    {
+        if (type.DeclaredAccessibility is Accessibility.Private or Accessibility.Protected)
+            return false;
+        if (type.ContainingType is INamedTypeSymbol parent)
+            return IsAccessible(parent);
+        return true;
     }
 
     private static void WithContainingTypes(
