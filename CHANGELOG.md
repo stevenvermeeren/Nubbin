@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.9.0...Nubbin-v0.10.0) (2026-10-03)
+
+
+### Features
+
+* Add diagnostic for containing types ([4a0ae7f](https://github.com/stevenvermeeren/Nubbin/commit/4a0ae7fe3758f11829432e06fb2a182bf0e14454))
+* Include property container for interface members ([72eeb27](https://github.com/stevenvermeeren/Nubbin/commit/72eeb2739fbcff9f82d3e03e86bdab70289fca69))
+
+
+### Bug Fixes
+
+* don't include helper lookup when type is not accessible ([3370956](https://github.com/stevenvermeeren/Nubbin/commit/33709563543062822436221e0152752fa0557aa3))
+
 ## [0.9.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.8.0...Nubbin-v0.9.0) (2026-10-01)
 
 
