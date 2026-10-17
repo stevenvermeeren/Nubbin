@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Analyzer.Discovery;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -6,31 +7,29 @@ internal static class PropertyEmitter
 {
     public static void AppendProperty(
         this IndentedStringBuilder source,
-        StubDefinition type,
-        IPropertySymbol property,
-        bool useStorage)
+        MissingProperty property)
     {
-        source.Append(type.GetPropertyDeclaration(property));
-        if (useStorage)
+        source.Append(GetPropertyDeclaration(property));
+        if (property.RequiresPropertyStorage)
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
-            if (property.HasGetter())
+            if (property.Property.HasGetter())
             {
                 source
                     .Append("get => ")
                     .Append(PropertyStorageEmitter.PropertyContainerFieldName)
                     .Append(".")
-                    .Append(property.Name)
+                    .Append(property.Property.Name)
                     .AppendLine(";");
             }
-            if (property.HasSetter())
+            if (property.Property.HasSetter())
             {
                 source
                     .Append("set => ")
                     .Append(PropertyStorageEmitter.PropertyContainerFieldName)
                     .Append(".")
-                    .Append(property.Name)
+                    .Append(property.Property.Name)
                     .AppendLine(" = value;");
             }
             source.Pop().AppendLine("}");
@@ -41,13 +40,35 @@ internal static class PropertyEmitter
         }     
     }
 
-    public static void AppendAutoPropertyBody(this IndentedStringBuilder source, IPropertySymbol property)
+    public static void AppendAutoPropertyBody(this IndentedStringBuilder source, MissingProperty property)
     {
-        var notNull = property.GetAttributes().Any(a =>
+        var notNull = property.Property.GetAttributes().Any(a =>
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
-        
-        if (!property.Type.CanBeInstantiated(!notNull))
+        if (property.ImplementExplicitly)
+        {
+            if (property.Property.GetMethod is null)
+            {
+                source.AppendLine();
+                source.AppendLine("{").Indent();
+                source.AppendLine("set { }");
+                source.Pop().AppendLine("}");
+                return;
+            }
+            else if (property.Property.SetMethod is null)
+            {
+                source.AppendLine();
+                source.AppendLine("{").Indent();
+                source.Append("get => ");
+                if (!property.Property.Type.CanBeInstantiated(!notNull))
+                    source.AppendLine("throw new global::System.NotImplementedException();");
+                else
+                    source.Append(property.Property.Type.GetReturnExpression(!notNull)).AppendLine(";");
+                source.Pop().AppendLine("}");
+                return;
+            }
+        }
+        if (!property.Property.Type.CanBeInstantiated(!notNull))
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
@@ -59,21 +80,20 @@ internal static class PropertyEmitter
         {
             source
                 .Append(" { get; set; } = ")
-                .Append(property.Type.GetReturnExpression(!notNull))
+                .Append(property.Property.Type.GetReturnExpression(!notNull))
                 .AppendLine(";");
         }
     }
 
-    private static string GetPropertyDeclaration(this StubDefinition type, IPropertySymbol property)
+    private static string GetPropertyDeclaration(MissingProperty property)
     {
-        var propertyType = property.Type.ToQualifiedString();
-        var overrideModifier = property.ContainingType.TypeKind == TypeKind.Interface
-            ? string.Empty
-            : "override ";
-        var accessibility = property.GetMemberAccessibility(type.ContainingAssembly);
-        var attributes = property.GetAttributes().Format();
+        var propertyType = property.Property.Type.ToQualifiedString();
+        var overrideModifier = property.GetOverrideModifier();
+        var accessibility = property.FormatMemberAccessibility();
+        var attributes = property.Property.GetAttributes().Format();
+        var name = property.FormatName();
 
-        return $"{attributes}{accessibility} {overrideModifier}{propertyType} {property.Name}";
+        return $"{attributes}{accessibility}{overrideModifier}{propertyType} {name}";
     }
 
     private static bool HasGetter(this IPropertySymbol property)
@@ -86,10 +106,5 @@ internal static class PropertyEmitter
     {
         return property.ContainingType.TypeKind == TypeKind.Interface 
             || property.SetMethod is not null;
-    }
-
-    public static bool RequiresPropertyStorage(IPropertySymbol property)
-    {
-        return (property.GetMethod is null) != (property.SetMethod is null);
     }
 }

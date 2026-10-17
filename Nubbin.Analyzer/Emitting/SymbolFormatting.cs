@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Nubbin.Analyzer.Discovery;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -129,7 +130,28 @@ internal static class SymbolFormatting
         };
     }
 
-    public static string GetMemberAccessibility(
+    public static string GetOverrideModifier(this MissingMember member)
+    {
+        return member.Symbol.ContainingType.TypeKind == TypeKind.Interface
+            ? string.Empty
+            : "override ";
+    }
+
+    public static string FormatName(this MissingMember member)
+    {
+        return member.ImplementExplicitly
+            ? $"{member.Symbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}.{member.Symbol.Name}"
+            : member.Symbol.Name;
+    }
+
+    public static string FormatMemberAccessibility(this MissingMember member)
+    {
+        return member.ImplementExplicitly 
+            ? "" 
+            : $"{member.Symbol.FormatMemberAccessibility(member.Context.ContainingAssembly)} ";
+    }
+
+    public static string FormatMemberAccessibility(
         this ISymbol symbol,
         IAssemblySymbol targetAssembly)
     {

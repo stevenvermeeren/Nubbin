@@ -26,9 +26,16 @@ public class EventDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
-        Assert.Single(events);
-        Assert.Equal("BaseEvent", events[0].Name);
+        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingEvent>().ToArray();
+
+        foreach (var @event in events)
+        {
+            @event.Process(events);
+        }
+
+        var remainingEvents = events.Where(@event => @event.ShouldEmit).ToArray();
+        Assert.Single(remainingEvents);
+        Assert.Equal("BaseEvent", remainingEvents[0].Event.Name);
     }
 
     [Fact]
@@ -51,9 +58,14 @@ public class EventDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
+        var events = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingEvent>().ToArray();
 
-        var eventNames = events.Select(e => e.Name);
+        foreach (var @event in events)
+        {
+            @event.Process(events);
+        }
+
+        var eventNames = events.Where(@event => @event.ShouldEmit).Select(e => e.Event.Name).ToArray();
         Assert.Equal(["BaseEvent", "InterfaceEvent2"], eventNames);
     }
 }

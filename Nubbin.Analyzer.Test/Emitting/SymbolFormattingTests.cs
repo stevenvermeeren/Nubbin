@@ -37,19 +37,19 @@ public class SymbolFormattingTests
 
         Assert.Equal(
             "public",
-            GeneratorTestHelpers.GetType(compilation, "IContract").GetMembers("Value").OfType<IPropertySymbol>().Single().GetMemberAccessibility(assembly));
+            GeneratorTestHelpers.GetType(compilation, "IContract").GetMembers("Value").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(assembly));
         Assert.Equal(
             "public",
-            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("PublicValue").OfType<IPropertySymbol>().Single().GetMemberAccessibility(assembly));
+            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("PublicValue").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(assembly));
         Assert.Equal(
             "protected",
-            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("ProtectedValue").OfType<IPropertySymbol>().Single().GetMemberAccessibility(assembly));
+            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("ProtectedValue").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(assembly));
         Assert.Equal(
             "protected internal",
-            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("ProtectedInternalValue").OfType<IPropertySymbol>().Single().GetMemberAccessibility(assembly));
+            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("ProtectedInternalValue").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(assembly));
         Assert.Equal(
             "private protected",
-            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("PrivateProtectedValue").OfType<IPropertySymbol>().Single().GetMemberAccessibility(assembly));
+            GeneratorTestHelpers.GetType(compilation, "Base").GetMembers("PrivateProtectedValue").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(assembly));
     }
 
     [Fact]
@@ -183,10 +183,10 @@ public class SymbolFormattingTests
         Console.WriteLine(tokenValueType.FormatTypeParams());
         Assert.Contains("int", valuesType.FormatTypeParams());
         Assert.Contains("Sample.Token", tokenValueType.FormatTypeParams());
-        Assert.Equal("public", privateProperty.GetMemberAccessibility(compilation.Assembly));
-        Assert.Equal("internal", internalProperty.GetMemberAccessibility(compilation.Assembly));
-        Assert.Equal("protected", subjectType.GetMembers("ProtectedValue").OfType<IPropertySymbol>().Single().GetMemberAccessibility(compilation.Assembly));
-        Assert.Equal("protected internal", protectedInternalProperty.GetMemberAccessibility(compilation.Assembly));
+        Assert.Equal("public", privateProperty.FormatMemberAccessibility(compilation.Assembly));
+        Assert.Equal("internal", internalProperty.FormatMemberAccessibility(compilation.Assembly));
+        Assert.Equal("protected", subjectType.GetMembers("ProtectedValue").OfType<IPropertySymbol>().Single().FormatMemberAccessibility(compilation.Assembly));
+        Assert.Equal("protected internal", protectedInternalProperty.FormatMemberAccessibility(compilation.Assembly));
         Assert.DoesNotContain("NullableAttribute", nullableProperty.GetAttributes().Format());
         Assert.DoesNotContain("NullableAttribute", annotatedProperty.GetAttributes().Format());
         Assert.Contains("string?", nullableProperty.Type.ToQualifiedString());
@@ -202,6 +202,6 @@ public class SymbolFormattingTests
         var otherCompilation = GeneratorTestHelpers.CreateCompilation(
             "public class Other { protected internal int Value => 0; }");
         var otherProperty = GeneratorTestHelpers.GetType(otherCompilation, "Other").GetMembers("Value").OfType<IPropertySymbol>().Single();
-        Assert.Equal("protected", otherProperty.GetMemberAccessibility(compilation.Assembly));
+        Assert.Equal("protected", otherProperty.FormatMemberAccessibility(compilation.Assembly));
     }
 }

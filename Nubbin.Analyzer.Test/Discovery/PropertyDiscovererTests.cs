@@ -26,9 +26,16 @@ public class PropertyDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
-        Assert.Single(properties);
-        Assert.Equal("Value", properties[0].Name);
+        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingProperty>().ToArray();
+
+        foreach (var property in properties)
+        {
+            property.Process(properties);
+        }
+
+        var remainingProperties = properties.Where(property => property.ShouldEmit).ToArray();
+        Assert.Single(remainingProperties);
+        Assert.Equal("Value", remainingProperties[0].Property.Name);
     }
 
     [Fact]
@@ -51,9 +58,14 @@ public class PropertyDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
+        var properties = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingProperty>().ToArray();
 
-        var propertyNames = properties.Select(p => p.Name);
+        foreach (var property in properties)
+        {
+            property.Process(properties);
+        }
+
+        var propertyNames = properties.Where(property => property.ShouldEmit).Select(p => p.Property.Name).ToArray();
         Assert.Equal(["Name", "Exists"], propertyNames);
     }
 }

@@ -1,11 +1,14 @@
 using Microsoft.CodeAnalysis;
 using Nubbin.Analyzer;
+using Nubbin.Analyzer.Discovery;
 using Nubbin.Analyzer.Emitting;
 
 namespace Nubbin.Test.Generator.Emitting;
 
 public class MethodEmitterTests
 {
+    private static MissingMethod Missing(IMethodSymbol method, StubDefinition type) => new(method, type);
+
     [Fact]
     public void AppendMethodGeneratesMethodDeclarationAndReturnBody()
     {
@@ -15,7 +18,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Name").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -33,7 +36,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Name").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -50,7 +53,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -66,7 +69,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -82,7 +85,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("DoAsync").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -98,7 +101,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -116,7 +119,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -133,7 +136,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -150,7 +153,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("GetAsync").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -167,7 +170,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Create").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -183,7 +186,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Compute").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -199,7 +202,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("M").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -217,7 +220,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Echo").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -233,7 +236,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("Do").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -249,7 +252,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -265,7 +268,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -281,7 +284,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -297,7 +300,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("GetValue").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -313,7 +316,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("IsValid").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 
@@ -330,7 +333,7 @@ public class MethodEmitterTests
         var method = type.LeafType!.GetMembers("TryGet").OfType<IMethodSymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendMethod(method, type);
+        builder.AppendMethod(Missing(method, type));
 
         var result = builder.ToString();
 

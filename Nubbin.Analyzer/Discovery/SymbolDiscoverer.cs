@@ -4,27 +4,25 @@ namespace Nubbin.Analyzer.Discovery;
 
 internal abstract class SymbolDiscoverer<T> where T : ISymbol
 {
-    public IEnumerable<T> GetSymbolsMissingImplementation(StubDefinition type)
+    public IEnumerable<MissingMember> GetSymbolsMissingImplementation(StubDefinition type)
     {
         var candidates = new List<T>();
+        var handledTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
         for (var baseType = type.BaseType; baseType is not null; baseType = baseType.BaseType)
         {
             candidates.AddRange(FindCandidates(baseType));
+            handledTypes.Add(baseType);
         }
 
-        foreach (var interfaceType in type.AllInterfaces)
+        foreach (var interfaceType in type.AllInterfaces.Except(handledTypes))
         {
             candidates.AddRange(FindCandidates(interfaceType));
         }
 
-        var emitted = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var candidate in candidates)
-        {
-            var key = GetKey(candidate);
-            if (emitted.Add(key) && !HasConcreteImplementation(type, candidate))
-                yield return candidate;
-        }
+        return candidates
+            .Where(c => !HasConcreteImplementation(type, c))
+            .Select(c => CreateResult(type, c));
     }
 
     private IEnumerable<T> FindCandidates(INamedTypeSymbol type)
@@ -65,7 +63,6 @@ internal abstract class SymbolDiscoverer<T> where T : ISymbol
         return true;
     }
 
-    protected abstract string GetKey(T candidate);
-
     protected abstract bool IsSameMember(T existing, T candidate);
+    protected abstract MissingMember CreateResult(StubDefinition type, T candidate);
 }

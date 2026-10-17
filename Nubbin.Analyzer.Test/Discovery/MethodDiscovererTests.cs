@@ -28,9 +28,16 @@ public class MethodDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
-        Assert.Single(methods);
-        Assert.Equal("BaseMethod", methods[0].Name);
+        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingMethod>().ToArray();
+
+        foreach (var method in methods)
+        {
+            method.Process(methods);
+        }
+
+        var remainingMethods = methods.Where(method => method.ShouldEmit).ToArray();
+        Assert.Single(remainingMethods);
+        Assert.Equal("BaseMethod", remainingMethods[0].Method.Name);
     }
 
     [Fact]
@@ -53,9 +60,14 @@ public class MethodDiscovererTests
             """;
         var type = GeneratorTestHelpers.GetType(GeneratorTestHelpers.CreateCompilation(source), "Subject");
 
-        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).ToArray();
+        var methods = _target.GetSymbolsMissingImplementation(StubDefinition.FromINamedTypeSymbol(type)).OfType<MissingMethod>().ToArray();
 
-        var methodNames = methods.Select(p => p.Name);
-        Assert.Equal(["BaseMethod", "InterfaceMethod"], methodNames);
+        foreach (var method in methods)
+        {
+            method.Process(methods);
+        }
+
+        var remainingMethods = methods.Where(method => method.ShouldEmit).Select(method => method.Method.Name).ToArray();
+        Assert.Equal(["BaseMethod", "InterfaceMethod"], remainingMethods);
     }
 }

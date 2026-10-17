@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Nubbin.Analyzer.Discovery;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -10,7 +11,7 @@ internal static class PropertyStorageEmitter
     public static void AppendPropertyStorage(
         this IndentedStringBuilder builder,
         StubDefinition type,
-        IReadOnlyCollection<IPropertySymbol> properties)
+        IEnumerable<IPropertySymbol> properties)
     {
         builder.AppendLine("#pragma warning disable CS0108 // Potentially hiding member");
         builder
@@ -30,10 +31,11 @@ internal static class PropertyStorageEmitter
             {
                 foreach (var property in properties)
                 {
-                    var propType = property.Type.ToQualifiedString();                        
+                    var propType = property.Type.ToQualifiedString();
+                    var missingProperty = new MissingProperty(property, type);
                     builder
                         .Append($"public {propType} {property.Name}")
-                        .AppendAutoPropertyBody(property);
+                        .AppendAutoPropertyBody(missingProperty);
                 }
             });
     }

@@ -1,28 +1,29 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Analyzer.Discovery;
 
 namespace Nubbin.Analyzer.Emitting;
 
 internal static class MethodEmitter
 {
-    public static void AppendMethod(this IndentedStringBuilder source, IMethodSymbol method, StubDefinition type)
+    public static void AppendMethod(this IndentedStringBuilder source, MissingMethod method)
     {
-        source.AppendLine(type.GetMethodDeclaration(method));
-        if (method.ContainingType.TypeKind == TypeKind.Interface)
-            source.AppendTypeConstraints(method.TypeParameters);
+        source.AppendLine(GetMethodDeclaration(method));
+        if (method.Method.ContainingType.TypeKind == TypeKind.Interface)
+            source.AppendTypeConstraints(method.Method.TypeParameters);
         source.AppendLine("{").Indent();
 
-        if (CanImplement(method))
+        if (CanImplement(method.Method))
         {
-            foreach (var parameter in method.Parameters.Where(parameter => parameter.RefKind == RefKind.Out))
+            foreach (var parameter in method.Method.Parameters.Where(parameter => parameter.RefKind == RefKind.Out))
             {
                 source.Append(parameter.Name).Append(" = ")
                     .Append(StubDefaults.GetReturnExpression(parameter.Type))
                     .AppendLine(";");
             }
 
-            if (!method.ReturnsVoid)
+            if (!method.Method.ReturnsVoid)
             {
-                source.Append("return ").Append(StubDefaults.GetReturnExpression(method.ReturnType)).AppendLine(";");
+                source.Append("return ").Append(StubDefaults.GetReturnExpression(method.Method.ReturnType)).AppendLine(";");
             }
         }
         else
@@ -55,10 +56,10 @@ internal static class MethodEmitter
         return true;
     }
 
-    private static string GetMethodDeclaration(this StubDefinition type, IMethodSymbol method)
+    private static string GetMethodDeclaration(MissingMethod method)
     {
-        var returnType = method.ReturnType.ToQualifiedString();
-        var parameters = string.Join(", ", method.Parameters.Select(parameter =>
+        var returnType = method.Method.ReturnType.ToQualifiedString();
+        var parameters = string.Join(", ", method.Method.Parameters.Select(parameter =>
             parameter.GetAttributes().Format() +
             (parameter.IsParams ? "params " : string.Empty) +
             (parameter.RefKind switch
@@ -68,10 +69,11 @@ internal static class MethodEmitter
                 RefKind.In => "in ",
                 _ => string.Empty
             }) + parameter.Type.ToQualifiedString() + " " + parameter.Name));
-        var typeParameters = method.Arity == 0 ? string.Empty : "<" + string.Join(", ", method.TypeParameters.Select(parameter => parameter.ToQualifiedString())) + ">";
-        var overrideModifier = method.ContainingType.TypeKind == TypeKind.Interface ? string.Empty : "override ";
-        var accessibility = method.GetMemberAccessibility(type.ContainingAssembly);
+        var typeParameters = method.Method.Arity == 0 ? string.Empty : "<" + string.Join(", ", method.Method.TypeParameters.Select(parameter => parameter.ToQualifiedString())) + ">";
+        var overrideModifier = method.GetOverrideModifier();
+        var accessibility = method.FormatMemberAccessibility();
+        var name = method.FormatName();
 
-        return $"{accessibility} {overrideModifier}{returnType} {method.Name}{typeParameters}({parameters})";
+        return $"{accessibility}{overrideModifier}{returnType} {name}{typeParameters}({parameters})";
     }
 }

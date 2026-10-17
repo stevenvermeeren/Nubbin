@@ -47,4 +47,43 @@ public class StubSourceEmitterTests
         Assert.Contains("GetPropertyHelper(this global::Example.Outer.MiddleStub owner)", result);
         Assert.Contains("get => __Nubbin__PropertyContainer.Value;", result);
     }
+
+    [Fact]
+    public void EmitsExplicitImplementations()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            using System.Collections;
+            using System.Collections.Generic;
+            namespace Example;
+
+            public interface IDoubleEnumerable : IEnumerable, IEnumerable<string>
+            """);
+
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IDoubleEnumerable"));
+
+        var result = StubSourceEmitter.Emit(type);
+
+        Assert.Contains("public global::System.Collections.Generic.IEnumerator<string> GetEnumerator()", result);
+        Assert.Contains("global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator()", result);
+    }
+
+    [Fact]
+    public void EmitsExplicitEvent()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+
+            public abstract class Base { public abstract string Name(); }
+            public interface Interface { event System.EventHandler Name; }
+            public class Target : Base, Interface;
+            """);
+
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.Target"));
+
+        var result = StubSourceEmitter.Emit(type);
+
+        Assert.Contains("event global::System.EventHandler global::Example.Interface.Name", result);
+    }
 }

@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Nubbin.Analyzer.Discovery;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -6,22 +7,20 @@ internal static class EventEmitter
 {
     public static void AppendEvent(
         this IndentedStringBuilder source,
-        StubDefinition type,
-        IEventSymbol _event)
+        MissingEvent @event)
     {
         source
-            .Append(type.GetEventDeclaration(_event))
+            .Append(GetEventDeclaration(@event))
             .AppendLine(" { add { } remove { } }");
     }
 
-    private static string GetEventDeclaration(this StubDefinition type, IEventSymbol _event)
+    private static string GetEventDeclaration(MissingEvent @event)
     {
-        var eventType = _event.Type.ToQualifiedString();
-        var overrideModifier = _event.ContainingType.TypeKind == TypeKind.Interface
-            ? string.Empty
-            : "override ";
-        var accessibility = _event.GetMemberAccessibility(type.ContainingAssembly);
+        var eventType = @event.Event.Type.ToQualifiedString();
+        var overrideModifier = @event.GetOverrideModifier();
+        var accessibility = @event.FormatMemberAccessibility();
+        var name = @event.FormatName();
 
-        return $"{accessibility} {overrideModifier}event {eventType} {_event.Name}";
+        return $"{accessibility}{overrideModifier}event {eventType} {name}";
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Nubbin.Analyzer.Discovery;
 
@@ -13,13 +12,16 @@ internal static class StubSourceEmitter
 
     public static string Emit(StubDefinition type)
     {
-        var properties = new PropertyDiscoverer().GetSymbolsMissingImplementation(type).ToArray();
-        var storageProperties = properties.Where(PropertyEmitter.RequiresPropertyStorage).ToArray();
+        var membersToGenerate = FindMembersToGenerate(type);
+
+        var storageProperties = membersToGenerate.OfType<MissingProperty>()
+            .Where(p => p.RequiresPropertyStorage);
 
         var builder = new IndentedStringBuilder();
         builder.WithNamespace(type.Namespace, () =>
         {
-            builder.WithContainingTypes(type.ContainingType, () => {
+            builder.WithContainingTypes(type.ContainingType, () =>
+            {
                 builder.WithClass(
                     new ClassEmitter.Definition(type)
                     {
@@ -28,31 +30,21 @@ internal static class StubSourceEmitter
                     },
                     () =>
                     {
-                        foreach (var method in new MethodDiscoverer().GetSymbolsMissingImplementation(type))
+                        foreach (var member in membersToGenerate)
                         {
-                            builder.AppendMethod(method, type);
+                            member.Output(builder);
                         }
 
-                        foreach (var _event in new EventDiscoverer().GetSymbolsMissingImplementation(type))
-                        {
-                            builder.AppendEvent(type, _event);
-                        }
-
-                        foreach (var property in properties)
-                        {
-                            builder.AppendProperty(type, property, storageProperties.Contains(property, SymbolEqualityComparer.Default));
-                        }
-
-                        if (storageProperties.Length > 0)
+                        if (storageProperties.Count() > 0)
                         {
                             builder.AppendLine();
-                            builder.AppendPropertyStorage(type, storageProperties);
+                            builder.AppendPropertyStorage(type, storageProperties.Select(p => p.Property));
                         }
                     });
             });
         });
 
-        if (storageProperties.Length > 0 && IsAccessible(type.LeafType ?? type.BaseType!))
+        if (storageProperties.Count() > 0 && IsAccessible(type.LeafType ?? type.BaseType!))
         {
             builder.WithNamespace("Nubbin", () =>
             {
@@ -61,6 +53,25 @@ internal static class StubSourceEmitter
         }
 
         return builder.ToString();
+    }
+
+    private static MissingMember[] FindMembersToGenerate(StubDefinition type)
+    {
+        var methods = new MethodDiscoverer().GetSymbolsMissingImplementation(type);
+        var events = new EventDiscoverer().GetSymbolsMissingImplementation(type);
+        var properties = new PropertyDiscoverer().GetSymbolsMissingImplementation(type).ToArray();
+
+        var allMembers = methods.Concat(events).Concat(properties)
+            .OrderBy(m => m.Symbol.ContainingType.TypeKind == TypeKind.Interface
+                ? m.Symbol.ContainingType.AllInterfaces.Length
+                : int.MaxValue)
+            .ToArray();
+
+        foreach (var member in allMembers)
+        {
+            member.Process(allMembers);
+        }
+        return allMembers.Where(m => m.ShouldEmit).ToArray();
     }
 
     private static bool IsAccessible(INamedTypeSymbol type)

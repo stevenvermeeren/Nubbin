@@ -11,14 +11,6 @@ internal class MethodDiscoverer : SymbolDiscoverer<IMethodSymbol>
             && candidate.MethodKind is not MethodKind.EventAdd and not MethodKind.EventRemove;
     }
 
-    protected override string GetKey(IMethodSymbol candidate)
-    {
-        static string FormatParameter(IParameterSymbol parameter)
-            => parameter.RefKind + ":" + parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-        return $"{candidate.Name}{candidate.Arity}:{string.Join(",", candidate.Parameters.Select(FormatParameter))}";
-    }
-
     protected override bool IsSameMember(IMethodSymbol existing, IMethodSymbol candidate)
     {
         return existing.Arity == candidate.Arity &&
@@ -28,5 +20,10 @@ internal class MethodDiscoverer : SymbolDiscoverer<IMethodSymbol>
                     leftParameter.RefKind == rightParameter.RefKind &&
                     SymbolEqualityComparer.Default.Equals(leftParameter.Type, rightParameter.Type))
                 .All(result => result);
+    }
+
+    protected override MissingMember CreateResult(StubDefinition type, IMethodSymbol candidate)
+    {
+        return new MissingMethod(candidate, type);
     }
  }

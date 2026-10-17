@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Nubbin.UsageTest.Bases;
 
 public interface IUnsupportedReferenceSample
