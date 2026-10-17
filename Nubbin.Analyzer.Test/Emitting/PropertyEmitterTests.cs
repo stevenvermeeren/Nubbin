@@ -97,7 +97,25 @@ public class PropertyEmitterTests
     }
 
     [Fact]
-    public void AppendAutoPropertyBody_GeneratesNotImplementedForNonConstructibleReferenceType()
+    public void AppendProperty_OneSidedInterfacePropertyExposesBothAccessors()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public interface ISubject { string Name { get; } }"
+        );
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.ISubject"));
+        var property = type.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendProperty(Missing(property, type));
+
+        var result = builder.ToString();
+
+        Assert.Contains("get => __Nubbin__PropertyContainer.Name;", result);
+        Assert.Contains("set => __Nubbin__PropertyContainer.Name = value;", result);
+    }
+
+    [Fact]
+    public void AppendProperty_GeneratesNullableBackingFieldForNonConstructibleReferenceType()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
             "namespace Example; public class Subject(int param) { public Subject Name { get; set; } }"
@@ -106,15 +124,17 @@ public class PropertyEmitterTests
         var property = type.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
 
         var builder = new IndentedStringBuilder();
-        builder.AppendAutoPropertyBody(Missing(property, type));
+        builder.AppendProperty(Missing(property, type));
 
         var result = builder.ToString();
 
-        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+        Assert.Contains("private global::Example.Subject? __Nubbin__Name;", result);
+        Assert.Contains("get => __Nubbin__Name ?? throw new global::System.NotImplementedException();", result);
+        Assert.Contains("set => __Nubbin__Name = value;", result);
     }
 
     [Fact]
-    public void AppendAutoPropertyBody_GeneratesNotImplementedForNonConstructibleGenericType()
+    public void AppendAutoPropertyBody_UsesNullableBackingFieldForNonConstructibleGenericType()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
             "namespace Example; public class Subject<T> { public T Name { get; set; } }"
@@ -127,7 +147,42 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+        Assert.Contains("get => __Nubbin__Name ?? throw new global::System.NotImplementedException();", result);
+        Assert.Contains("set => __Nubbin__Name = value;", result);
+    }
+
+    [Fact]
+    public void AppendProperty_UsesUniqueBackingFieldNamesForExplicitMembersWithSameName()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+            public class Subject(int param) { }
+            public interface IFirst { Subject Name { get; } }
+            public interface ISecond { string Name { get; } }
+            """);
+
+        var firstType = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IFirst"));
+        var secondType = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.ISecond"));
+        var firstProperty = firstType.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+        var secondProperty = secondType.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        var first = Missing(firstProperty, firstType);
+        var second = Missing(secondProperty, secondType);
+        first.Process([first, second]);
+
+        Assert.True(first.ImplementExplicitly);
+        Assert.False(second.ImplementExplicitly);
+
+        builder.AppendProperty(first);
+
+        var result = builder.ToString();
+
+        Assert.Contains("private global::Example.Subject? __Nubbin__global__Example_IFirst_Name;", result);
+        Assert.Contains("get => __Nubbin__global__Example_IFirst_Name ?? throw new global::System.NotImplementedException();", result);
+        Assert.DoesNotContain("private global::System.String? __Nubbin__Name;", result);
+        Assert.DoesNotContain("__Nubbin__Name;", result);
     }
 
     [Fact]
@@ -231,6 +286,7 @@ public class PropertyEmitterTests
         var result = builder.ToString();
 
         Assert.DoesNotContain("set", result);
-        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+        Assert.Contains("get => __Nubbin__", result);
+        Assert.Contains("?? throw new global::System.NotImplementedException();", result);
     }
 }

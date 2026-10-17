@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Nubbin.Analyzer.Discovery;
+using System.Text;
 
 namespace Nubbin.Analyzer.Emitting;
 
@@ -9,12 +10,21 @@ internal static class PropertyEmitter
         this IndentedStringBuilder source,
         MissingProperty property)
     {
+        var notNull = property.Property.GetAttributes().Any(a =>
+            a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
+            a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
+
+        if (!property.Property.Type.CanBeInstantiated(!notNull))
+        {
+            source.Append("private ").Append(GetBackingFieldType(property.Property.Type)).Append(" ").Append(GetBackingFieldName(property)).AppendLine(";");
+        }
+
         source.Append(GetPropertyDeclaration(property));
         if (property.RequiresPropertyStorage)
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
-            if (property.Property.HasGetter())
+            if (property.HasGetter())
             {
                 source
                     .Append("get => ")
@@ -23,7 +33,7 @@ internal static class PropertyEmitter
                     .Append(property.Property.Name)
                     .AppendLine(";");
             }
-            if (property.Property.HasSetter())
+            if (property.HasSetter())
             {
                 source
                     .Append("set => ")
@@ -37,7 +47,7 @@ internal static class PropertyEmitter
         else
         {
             source.AppendAutoPropertyBody(property);
-        }     
+        }
     }
 
     public static void AppendAutoPropertyBody(this IndentedStringBuilder source, MissingProperty property)
@@ -45,6 +55,19 @@ internal static class PropertyEmitter
         var notNull = property.Property.GetAttributes().Any(a =>
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
+
+        if (!property.Property.Type.CanBeInstantiated(!notNull))
+        {
+            source.AppendLine();
+            source.AppendLine("{").Indent();
+            if (property.HasGetter())
+                source.Append("get => ").Append(GetBackingFieldName(property)).AppendLine(" ?? throw new global::System.NotImplementedException();");
+            if (property.HasSetter())
+                source.Append("set => ").Append(GetBackingFieldName(property)).AppendLine(" = value;");
+            source.Pop().AppendLine("}");
+            return;
+        }
+
         if (property.ImplementExplicitly)
         {
             if (property.Property.GetMethod is null)
@@ -60,29 +83,37 @@ internal static class PropertyEmitter
                 source.AppendLine();
                 source.AppendLine("{").Indent();
                 source.Append("get => ");
-                if (!property.Property.Type.CanBeInstantiated(!notNull))
-                    source.AppendLine("throw new global::System.NotImplementedException();");
-                else
-                    source.Append(property.Property.Type.GetReturnExpression(!notNull)).AppendLine(";");
+                source.Append(property.Property.Type.GetReturnExpression(!notNull)).AppendLine(";");
                 source.Pop().AppendLine("}");
                 return;
             }
         }
-        if (!property.Property.Type.CanBeInstantiated(!notNull))
+
+        source
+            .Append(" { get; set; } = ")
+            .Append(property.Property.Type.GetReturnExpression(!notNull))
+            .AppendLine(";");
+    }
+
+    internal static string GetBackingFieldName(MissingProperty property)
+    {
+        var name = property.ImplementExplicitly ? property.FormatName() : property.Property.Name;
+        var builder = new StringBuilder("__Nubbin__");
+        foreach (var ch in name)
         {
-            source.AppendLine();
-            source.AppendLine("{").Indent();
-            source.AppendLine("get => throw new global::System.NotImplementedException();");
-            source.AppendLine("set { }");
-            source.Pop().AppendLine("}");
+            builder.Append(char.IsLetterOrDigit(ch) ? ch : '_');
         }
-        else
-        {
-            source
-                .Append(" { get; set; } = ")
-                .Append(property.Property.Type.GetReturnExpression(!notNull))
-                .AppendLine(";");
-        }
+
+        var fieldName = builder.ToString();
+        return name.Length > 0 && char.IsDigit(name[0]) ? "_" + fieldName : fieldName;
+    }
+
+    internal static string GetBackingFieldType(ITypeSymbol type)
+    {
+        var fieldType = type.ToQualifiedString();
+        if (type is ITypeParameterSymbol || (type.IsReferenceType && type.NullableAnnotation == NullableAnnotation.NotAnnotated))
+            fieldType += "?";
+        return fieldType;
     }
 
     private static string GetPropertyDeclaration(MissingProperty property)
@@ -96,15 +127,17 @@ internal static class PropertyEmitter
         return $"{attributes}{accessibility}{overrideModifier}{propertyType} {name}";
     }
 
-    private static bool HasGetter(this IPropertySymbol property)
+    private static bool HasGetter(this MissingProperty property)
     {
-        return property.ContainingType.TypeKind == TypeKind.Interface
-            || property.GetMethod is not null;
+        return property.ImplementExplicitly
+            ? property.Property.GetMethod is not null
+            : property.Property.ContainingType.TypeKind == TypeKind.Interface || property.Property.GetMethod is not null;
     }
 
-    private static bool HasSetter(this IPropertySymbol property)
+    private static bool HasSetter(this MissingProperty property)
     {
-        return property.ContainingType.TypeKind == TypeKind.Interface 
-            || property.SetMethod is not null;
+        return property.ImplementExplicitly
+            ? property.Property.SetMethod is not null
+            : property.Property.ContainingType.TypeKind == TypeKind.Interface || property.Property.SetMethod is not null;
     }
 }
