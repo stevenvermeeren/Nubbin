@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.10.0...Nubbin-v0.11.0) (2026-10-17)
+
+
+### Features
+
+* properties without default value can be set ([f7d8a1f](https://github.com/stevenvermeeren/Nubbin/commit/f7d8a1fbb463de361c816547fd078cc6a3b49ece))
+* Support explicit member impelentation ([3a30206](https://github.com/stevenvermeeren/Nubbin/commit/3a30206fb921aab718be37a2d869bad9de2cbd45))
+
 ## [0.10.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.9.0...Nubbin-v0.10.0) (2026-10-03)
 
 
