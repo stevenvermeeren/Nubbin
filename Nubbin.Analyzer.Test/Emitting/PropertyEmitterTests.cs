@@ -179,8 +179,8 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("private global::Example.Subject? __Nubbin__global__Example_IFirst_Name;", result);
-        Assert.Contains("get => __Nubbin__global__Example_IFirst_Name ?? throw new global::System.NotImplementedException();", result);
+        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+        Assert.DoesNotContain("private global::Example.Subject? __Nubbin__global__Example_IFirst_Name;", result);
         Assert.DoesNotContain("private global::System.String? __Nubbin__Name;", result);
         Assert.DoesNotContain("__Nubbin__Name;", result);
     }
@@ -209,6 +209,8 @@ public class PropertyEmitterTests
 
         Assert.Contains("set { }", result);
         Assert.DoesNotContain("get =>", result);
+        Assert.DoesNotContain("private ", result);
+        Assert.DoesNotContain("__Nubbin__", result);
     }
 
     [Fact]
@@ -235,6 +237,80 @@ public class PropertyEmitterTests
 
         Assert.Contains("get => default;", result);
         Assert.DoesNotContain("set", result);
+    }
+
+    [Fact]
+    public void AppendProperty_UsesPropertyStorageForAbstractBaseSetterOnlyProperty()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+            public abstract class Base
+            {
+                public abstract int Value { set; }
+            }
+            """);
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.Base"));
+        var property = type.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendProperty(Missing(property, type));
+
+        var result = builder.ToString();
+
+        Assert.Contains("set => __Nubbin__PropertyContainer.Value = value;", result);
+        Assert.DoesNotContain("get => __Nubbin__PropertyContainer.Value;", result);
+        Assert.DoesNotContain("private int __Nubbin__Value;", result);
+    }
+
+    [Fact]
+    public void AppendAutoPropertyBody_GeneratesNoOpSetterForExplicitSetterOnlyNonConstructibleType()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+            public class ValueTypeHolder(int value) { }
+            public interface IFirst { ValueTypeHolder Name { set; } }
+            public interface ISecond { ValueTypeHolder Name { get; } }
+            """);
+        var firstType = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.IFirst"));
+        var secondType = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.ISecond"));
+        var firstProperty = firstType.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+        var secondProperty = secondType.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        var missing = Missing(firstProperty, firstType);
+        var other = Missing(secondProperty, secondType);
+        missing.Process([missing, other]);
+        builder.AppendAutoPropertyBody(missing);
+
+        var result = builder.ToString();
+
+        Assert.Contains("set { }", result);
+        Assert.DoesNotContain("get =>", result);
+        Assert.DoesNotContain("private ", result);
+        Assert.DoesNotContain("__Nubbin__", result);
+    }
+
+    [Fact]
+    public void AppendProperty_DoesNotGenerateBackingFieldWhenUsingPropertyStorage()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+            public class Subject(int param) { }
+            public interface ISubject { Subject Name { get; } }
+            """);
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.ISubject"));
+        var property = type.LeafType!.GetMembers().OfType<IPropertySymbol>().Single();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendProperty(Missing(property, type));
+
+        var result = builder.ToString();
+
+        Assert.Contains("get => __Nubbin__PropertyContainer.Name;", result);
+        Assert.DoesNotContain("private global::Example.Subject? __Nubbin__Name;", result);
     }
 
     [Fact]
@@ -286,7 +362,7 @@ public class PropertyEmitterTests
         var result = builder.ToString();
 
         Assert.DoesNotContain("set", result);
-        Assert.Contains("get => __Nubbin__", result);
-        Assert.Contains("?? throw new global::System.NotImplementedException();", result);
+        Assert.Contains("get => throw new global::System.NotImplementedException();", result);
+        Assert.DoesNotContain("__Nubbin__", result);
     }
 }
