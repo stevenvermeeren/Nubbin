@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.11.0...Nubbin-v0.11.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* don't generate unused backing fields ([2b74082](https://github.com/stevenvermeeren/Nubbin/commit/2b740822b3dd0a37c35ae3ff36180e901edd4a32))
+
 ## [0.11.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.10.0...Nubbin-v0.11.0) (2026-10-17)
 
 
