@@ -26,6 +26,30 @@ public class PropertyStorageEmitterTests
     }
 
     [Fact]
+    public void AppendPropertyStorage_GeneratesGetterAndSetterForSetterOnlyNonConstructibleProperty()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            """
+            namespace Example;
+            public class ValueTypeHolder(int value) { }
+            public abstract class Subject { public abstract ValueTypeHolder Value { set; } }
+            """
+        );
+
+        var type = StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "Example.Subject"));
+        var properties = type.LeafType!.GetMembers().OfType<IPropertySymbol>().ToArray();
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendPropertyStorage(type, properties);
+
+        var result = builder.ToString();
+
+        Assert.Contains("public global::Example.ValueTypeHolder Value", result);
+        Assert.Contains("get => __Nubbin__Value", result);
+        Assert.Contains("set => __Nubbin__Value = value;", result);
+    }
+
+    [Fact]
     public void AppendPropertyStorageLookup_GeneratesLookup()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(

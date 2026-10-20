@@ -52,6 +52,11 @@ internal static class PropertyEmitter
 
     public static void AppendAutoPropertyBody(this IndentedStringBuilder source, MissingProperty property)
     {
+        source.AppendAutoPropertyBody(property, property.HasGetter(), property.HasSetter());
+    }
+
+    internal static void AppendAutoPropertyBody(this IndentedStringBuilder source, MissingProperty property, bool generateGetter, bool generateSetter)
+    {
         var notNull = property.Property.GetAttributes().Any(a =>
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullAttribute" ||
             a.AttributeClass?.GetFullyQualifiedName(false) == "System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute");
@@ -65,15 +70,15 @@ internal static class PropertyEmitter
             {
                 source.AppendLine("set { }");
             }
-            else if (property.HasGetter() && !property.HasSetter())
+            else if (generateGetter && !generateSetter)
             {
                 source.Append("get => throw new global::System.NotImplementedException();").AppendLine();
             }
             else
             {
-                if (property.HasGetter())
+                if (generateGetter)
                     source.Append("get => ").Append(GetBackingFieldName(property)).AppendLine(" ?? throw new global::System.NotImplementedException();");
-                if (property.HasSetter())
+                if (generateSetter)
                     source.Append("set => ").Append(GetBackingFieldName(property)).AppendLine(" = value;");
             }
 

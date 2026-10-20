@@ -33,9 +33,8 @@ internal static class PropertyStorageEmitter
                 {
                     var propType = property.Type.ToQualifiedString();
                     var missingProperty = new MissingProperty(property, type);
-                    var hasGetter = missingProperty.HasGetter();
-                    var hasSetter = missingProperty.HasSetter();
-                    if (!property.Type.CanBeInstantiated() && (hasSetter || !hasGetter))
+
+                    if (!property.Type.CanBeInstantiated())
                     {
                         builder
                             .Append("private ")
@@ -44,9 +43,9 @@ internal static class PropertyStorageEmitter
                             .Append(PropertyEmitter.GetBackingFieldName(missingProperty))
                             .AppendLine(";");
                     }
-                    builder
-                        .Append($"public {propType} {property.Name}")
-                        .AppendAutoPropertyBody(missingProperty);
+
+                    builder.Append($"public {propType} {property.Name}");
+                    builder.AppendAutoPropertyBody(missingProperty, generateGetter: true, generateSetter: true);
                 }
             });
     }
