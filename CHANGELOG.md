@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.11.1...Nubbin-v0.11.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* always generate both getter and setting in property container ([7cd9919](https://github.com/stevenvermeeren/Nubbin/commit/7cd99195004d0a7fcb8bd4ffd038279de813a401))
+
 ## [0.11.1](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.11.0...Nubbin-v0.11.1) (2026-10-19)
 
 
