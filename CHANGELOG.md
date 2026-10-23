@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.11.2...Nubbin-v0.12.0) (2026-10-23)
+
+
+### Features
+
+* Always use property storage when possible for better consistency ([7351d5e](https://github.com/stevenvermeeren/Nubbin/commit/7351d5ea492706e352be61c0555a03a7f62424b6))
+* Use extension property to access properties for nicer syntax ([e45c550](https://github.com/stevenvermeeren/Nubbin/commit/e45c550a57468492a831be9380ca63dd0754578a))
+
 ## [0.11.2](https://github.com/stevenvermeeren/Nubbin/compare/Nubbin-v0.11.1...Nubbin-v0.11.2) (2026-10-20)
 
 
