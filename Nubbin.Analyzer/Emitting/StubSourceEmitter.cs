@@ -15,7 +15,7 @@ internal static class StubSourceEmitter
         var membersToGenerate = FindMembersToGenerate(type);
 
         var storageProperties = membersToGenerate.OfType<MissingProperty>()
-            .Where(p => p.RequiresPropertyStorage);
+            .Where(p => p.UsePropertyStorage);
 
         var builder = new IndentedStringBuilder();
         builder.WithNamespace(type.Namespace, () =>

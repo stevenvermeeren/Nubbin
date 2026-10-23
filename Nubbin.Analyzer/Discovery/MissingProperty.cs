@@ -6,9 +6,8 @@ namespace Nubbin.Analyzer.Discovery;
 internal class MissingProperty : MissingMember
 {
     public IPropertySymbol Property { get; }
-    public bool RequiresPropertyStorage
-        => !ImplementExplicitly && (Property.GetMethod is null) != (Property.SetMethod is null);
-
+    public bool UsePropertyStorage => !ImplementExplicitly;
+        
     public MissingProperty(IPropertySymbol property, StubDefinition context) : base(property, context)
     {
         Property = property;

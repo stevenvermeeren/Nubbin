@@ -79,7 +79,7 @@ public class PropertyEmitterTests
     }
 
     [Fact]
-    public void AppendProperty_UsesAutoPropertyWhenBothAccessorsExist()
+    public void AppendProperty_UsesPropertyStorageWhenBothAccessorsExist()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
             "namespace Example; public class Subject { public int Count { get; set; } }"
@@ -92,8 +92,9 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("{ get; set; } = default;", result);
-        Assert.DoesNotContain("__Nubbin__PropertyContainer", result);
+        Assert.Contains("get => __Nubbin__PropertyContainer.Count;", result);
+        Assert.Contains("set => __Nubbin__PropertyContainer.Count = value;", result);
+        Assert.DoesNotContain("{ get; set; } = default;", result);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class PropertyEmitterTests
     }
 
     [Fact]
-    public void AppendProperty_GeneratesNullableBackingFieldForNonConstructibleReferenceType()
+    public void AppendProperty_UsesPropertyStorageForNonConstructibleReferenceType()
     {
         var compilation = GeneratorTestHelpers.CreateCompilation(
             "namespace Example; public class Subject(int param) { public Subject Name { get; set; } }"
@@ -128,9 +129,9 @@ public class PropertyEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("private global::Example.Subject? __Nubbin__Name;", result);
-        Assert.Contains("get => __Nubbin__Name ?? throw new global::System.NotImplementedException();", result);
-        Assert.Contains("set => __Nubbin__Name = value;", result);
+        Assert.Contains("get => __Nubbin__PropertyContainer.Name;", result);
+        Assert.Contains("set => __Nubbin__PropertyContainer.Name = value;", result);
+        Assert.DoesNotContain("private global::Example.Subject? __Nubbin__Name;", result);
     }
 
     [Fact]

@@ -20,7 +20,7 @@ internal static class PropertyEmitter
         }
 
         source.Append(GetPropertyDeclaration(property));
-        if (property.RequiresPropertyStorage)
+        if (property.UsePropertyStorage)
         {
             source.AppendLine();
             source.AppendLine("{").Indent();
@@ -116,7 +116,7 @@ internal static class PropertyEmitter
 
     private static bool RequiresBackingField(MissingProperty property, bool notNull)
     {
-        if (property.RequiresPropertyStorage)
+        if (property.UsePropertyStorage)
             return false;
 
         if (property.ImplementExplicitly && property.Property.GetMethod is null)

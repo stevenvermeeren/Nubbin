@@ -21,7 +21,7 @@ public class MissingPropertyTests
         var property = GeneratorTestHelpers.GetType(compilation, "IContract").GetMembers("Value").OfType<IPropertySymbol>().Single();
         var member = new MissingProperty(property, StubDefinition.FromINamedTypeSymbol(GeneratorTestHelpers.GetType(compilation, "IContract")));
 
-        Assert.True(member.RequiresPropertyStorage);
+        Assert.True(member.UsePropertyStorage);
     }
 
     [Fact]
