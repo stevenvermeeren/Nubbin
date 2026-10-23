@@ -65,37 +65,63 @@ internal static class PropertyStorageEmitter
                 var referenceType = type.LeafType ?? type.BaseType;
                 var typeName = referenceType?.GetFullyQualifiedNameWithTypeParams()
                     ?? throw new InvalidOperationException("Unexpected property container for non-concrete type.");
+                var propertyContainerTypeName = "global::" + GetStubTypeName(type);
+                var requiresCast = !string.Equals(typeName, propertyContainerTypeName, StringComparison.Ordinal);
+
+                var includeTypeParameters = ShouldIncludeTypeParameters(referenceType);
+
                 builder
-                    .AppendLine("/// <summary>")
-                    .AppendLine("/// Gets the property storage associated with a stub instance.")
-                    .AppendLine("/// </summary>")
-                    .AppendLine("/// <param name=\"owner\">The stub instance that owns the properties.</param>")
-                    .AppendLine("/// <returns>The typed property storage for <paramref name=\"owner\"/>.</returns>");
+                    .Append("extension");
+                if (includeTypeParameters)
+                {
+                    builder
+                        .Append("<")
+                        .Append(string.Join(", ", referenceType.TypeParameters.Select(p => p.Name)))
+                        .Append(">");
+                }
+
                 builder
-                    .Append("internal static global::")
-                    .Append(GetStubTypeName(type))
-                    .Append(".")
-                    .Append(GetPropertyStorageTypeName(type))
-                    .Append(" GetPropertyHelper")
-                    .Append(ShouldIncludeTypeParameters(referenceType) ? referenceType.FormatTypeParams() : "")
-                    .Append("(this ")
+                    .Append("(")
                     .Append(typeName)
-                    .AppendLine(" owner)")
-                    .Indent();
-                if (ShouldIncludeTypeParameters(referenceType))
+                    .Append(" owner)");
+                if (includeTypeParameters)
                     foreach (var typeParam in referenceType.TypeParameters)
-                        builder.Indent().AppendLine(typeParam.FormatConstraints()).Pop();
+                    {
+                        var constraints = typeParam.FormatConstraints();
+                        if (!string.IsNullOrEmpty(constraints))
+                            builder.Append(" ").Append(constraints);
+                    }
+                builder.AppendLine().AppendLine("{").Indent();
+
                 builder
-                    .Append("=> (owner as global::")
-                    .Append(GetStubTypeName(type))
-                    .Append(")?.")
-                    .Append(PropertyContainerFieldName)
-                    .Append(" ?? new global::")
+                    .Append("internal global::")
                     .Append(GetStubTypeName(type))
                     .Append(".")
                     .Append(GetPropertyStorageTypeName(type))
-                    .Append("();")
-                    .Pop();
+                    .Append(" Properties")
+                    .AppendLine()
+                    .Indent()
+                    .Append("=> ");
+
+                if (requiresCast)
+                {
+                    builder
+                        .Append("(owner as global::")
+                        .Append(GetStubTypeName(type))
+                        .Append(")?.")
+                        .Append(PropertyContainerFieldName)
+                        .Append(" ?? new global::")
+                        .Append(GetStubTypeName(type))
+                        .Append(".")
+                        .Append(GetPropertyStorageTypeName(type))
+                        .Append("();");
+                }
+                else
+                {
+                    builder.Append("owner.").Append(PropertyContainerFieldName).Append(";");
+                }
+
+                builder.Pop().AppendLine().Pop().AppendLine("}");
             });
     }
 

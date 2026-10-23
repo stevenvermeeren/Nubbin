@@ -67,11 +67,11 @@ public class InterfaceStubTests
         var stub = Stub.Auto<InterfaceSample>();
 
         Assert.Null(stub.GetterOnly);
-        stub.GetPropertyHelper().GetterOnly = "updated";
+        stub.Properties.GetterOnly = "updated";
         Assert.Equal("updated", stub.GetterOnly);
 
         stub.SetterOnly = 42;
-        Assert.Equal(42, stub.GetPropertyHelper().SetterOnly);
+        Assert.Equal(42, stub.Properties.SetterOnly);
     }
 
     [Fact]

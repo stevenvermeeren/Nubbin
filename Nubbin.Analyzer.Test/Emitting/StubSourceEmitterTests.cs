@@ -44,7 +44,8 @@ public class StubSourceEmitterTests
         Assert.Contains("class Outer", result);
         Assert.Contains("class MiddleStub", result);
         Assert.Contains("internal readonly MiddleStubPropertyContainer __Nubbin__PropertyContainer = new();", result);
-        Assert.Contains("GetPropertyHelper(this global::Example.Outer.MiddleStub owner)", result);
+        Assert.Contains("extension(global::Example.Outer.MiddleStub owner)", result);
+        Assert.Contains("Properties", result);
         Assert.Contains("get => __Nubbin__PropertyContainer.Value;", result);
     }
 

@@ -63,7 +63,9 @@ public class PropertyStorageEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("GetPropertyHelper(this global::Example.Subject owner)", result);
+        Assert.Contains("extension(global::Example.Subject owner)", result);
+        Assert.Contains("internal global::Example.Subject.SubjectPropertyContainer Properties", result);
+        Assert.Contains("=> owner.__Nubbin__PropertyContainer;", result);
     }
 
     [Fact]
@@ -80,7 +82,9 @@ public class PropertyStorageEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("GetPropertyHelper<T>(this global::Example.Subject<T> owner)", result);
+        Assert.Contains("extension<T>(global::Example.Subject<T> owner)", result);
+        Assert.Contains("owner.__Nubbin__PropertyContainer", result);
+        Assert.DoesNotContain("(owner as global::Example.Subject<T>)", result);
     }
 
     [Fact]
@@ -97,6 +101,31 @@ public class PropertyStorageEmitterTests
 
         var result = builder.ToString();
 
-        Assert.Contains("GetPropertyHelper(this global::Example.Outer.Middle.Subject owner)", result);
+        Assert.Contains("extension(global::Example.Outer.Middle.Subject owner)", result);
+        Assert.Contains("owner.__Nubbin__PropertyContainer", result);
+    }
+
+    [Fact]
+    public void AppendPropertyStorageLookup_UsesCastWhenTargetTypeDiffersFromContainerType()
+    {
+        var compilation = GeneratorTestHelpers.CreateCompilation(
+            "namespace Example; public class Subject { public string? Name { get; set; } }"
+        );
+
+        var type = new StubDefinition
+        {
+            Name = "SubjectStub",
+            Namespace = "Example",
+            ContainingAssembly = compilation.Assembly,
+            LeafType = GeneratorTestHelpers.GetType(compilation, "Example.Subject"),
+            BaseType = GeneratorTestHelpers.GetType(compilation, "Example.Subject")
+        };
+
+        var builder = new IndentedStringBuilder();
+        builder.AppendPropertyStorageLookup(type);
+
+        var result = builder.ToString();
+
+        Assert.Contains("(owner as global::Example.SubjectStub)?.__Nubbin__PropertyContainer", result);
     }
 }
